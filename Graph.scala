@@ -1,7 +1,10 @@
+
 import java.io._
 import java.util._
 import scala.math._
-object SpatialIndexing {
+
+class Graph {
+    
   val MAXN = 60000
   var LinkId = new Array[Int](MAXN)
   var LinkCat = new Array[String](MAXN)
@@ -24,6 +27,8 @@ object SpatialIndexing {
   var gapy = 0.0
   var wd = 0.0
   
+  val MeterPerDegree=6371000/180.0*math.Pi
+  
   val sourceFile = "e:/taxi/LTA.txt"
   
   var TotalNode = 0
@@ -40,16 +45,12 @@ object SpatialIndexing {
   var i = 0
   var j = 0
   var k = 0
-  class vector(var x:Double, var y:Double){
-    override def toString: String = x+" "+y
-    def +(that:vector): vector = new vector(x+that.x,y+that.y)    
-    def -(that:vector): vector = new vector(x-that.x,y-that.y)
-  }
-  
   
   def cross(a:vector,b:vector):Double = a.x*b.y-a.y*b.x
   def dot(a:vector,b:vector):Double = a.x*b.x+a.y*b.y
   def length(a:vector):Double = sqrt(dot(a,a))
+  def NormalToReal(a:Double):Double = a*wd*MeterPerDegree
+
   def getDistanceToLine(p:vector,a:vector,b:vector):Double = {
     var v1 = b-a
     var v2 = p-a
@@ -125,7 +126,7 @@ object SpatialIndexing {
   
   def check(x:Int,y:Int):Boolean = x>=0&&x<divx+1&&y>=0&&y<divx+1
   
-  def querySet(x:Double,y:Double):TreeSet[Int] = {
+  def querySet(x:Double,y:Double,range:Int):TreeSet[Int] = {
     var bx = x.toInt
     var by = y.toInt
     var s = new TreeSet[Int]
@@ -137,11 +138,11 @@ object SpatialIndexing {
     return s
   }
   
-  def querySize(x:Double,y:Double):Int = querySet(x,y).size()
+  def querySize(x:Double,y:Double):Int = querySet(x,y,range).size()
   
   def queryMini(x:Double,y:Double):Double = {
     var ans:Double = 100.0
-    var s = querySet(x,y)
+    var s = querySet(x,y,range)
     var c = s.iterator()
     while(c.hasNext()){
       var p = c.next()
@@ -151,29 +152,48 @@ object SpatialIndexing {
     return ans
   }
   
-  class dis_ind_t(var d:Double, var ind:Int,var t:Double){
-    def <(that:dis_ind_t):Boolean = d<that.d
-    override def toString():String = d+" "+RoadName(ind)+" "+LinkId(ind)+" "+t
-  }
-  
-  def queryTop(x:Double,y:Double):Array[dis_ind_t] = {
-    var s = querySet(x,y)
+  def queryTop(x:Double,y:Double,range:Int):Array[GeoPoint] = {
+    var s = querySet(x,y,range)
     var c = s.iterator()
     var size:Int = s.size()
-    var a = new Array[dis_ind_t](size)
+    var a = new Array[GeoPoint](size)
     var pos = 0 
     while(c.hasNext()){
       var p = c.next()
       var re = getDistanceToSegment(new vector(x,y),Point(p)(0),Point(p)(1))
-      a(pos) = new dis_ind_t(re.dis,p,re.t)
+      var pro = Point(p)(0)+((Point(p)(1)-Point(p)(0))*re.t)
+      a(pos) = new GeoPoint(pro.x,pro.y,re.dis,p,re.t)
       pos=pos+1
     }
     a=a.sortWith(_<_)
     return a
   }
+    
   
-  
-  def readInput() = {
+  def readInput(roadSegs:Array[Array[Double]]) = {
+    //var in = new Scanner(System.in)
+    n = roadSegs.length
+
+    var i:Int = 0
+    var j=i;
+    var k=i;
+    for(i <- 0 until n){
+      LinkId(i) = roadSegs(i)(4).toInt
+      LinkCat(i) = "Dont't Know"
+      LaneNum(i) = -1
+      ZoneId(i) = i
+      RoadName(i) = "Road " + i
+      //println(RoadName(i))
+      Node(i) = 2
+      for(j <- 0 until Node(i)){
+        Point(i)(j) = new vector(roadSegs(i)(j*2),roadSegs(i)(j*2+1))
+        //Point(i)(j).x = in.nextDouble()
+        //Point(i)(j).y = in.nextDouble()
+      }
+    }     
+  }
+
+  def OldReadInput() = {
     var in = new Scanner(new File(sourceFile))
     //var in = new Scanner(System.in)
     n = in.nextInt()
@@ -197,7 +217,6 @@ object SpatialIndexing {
       }
     }     
   }
-
 
   
   def normalize() = {
@@ -329,8 +348,8 @@ object SpatialIndexing {
     return ans
   }
   
-  def main(args: Array[String]){
-    readInput()
+  def OldInit() = {
+    OldReadInput()
     println("Readinput Complete!!")
     normalize()
     println("Normalize Complete!!")
@@ -338,19 +357,33 @@ object SpatialIndexing {
     println("Index Complete!!")
     GraphProcessing()
     println("GraphProcessing Complete!!")
+  }
+  
+  def Init(roadSegs:Array[Array[Double]]) = {
+    readInput(roadSegs)
+    println("Readinput Complete!!")
+    normalize()
+    println("Normalize Complete!!")
+    index()
+    println("Index Complete!!")
+    GraphProcessing()
+    println("GraphProcessing Complete!!")
+  }
+  
+  def test() = {
+    println("Testing start!!")
     var cin = new Scanner(System.in)
+
     while(true){
-      var x=cin.nextDouble()
-      var y=cin.nextDouble()
-      var re = queryTop(x,y)
+      var x = cin.nextDouble()
+      var y = cin.nextDouble()
+      var re = queryTop(x,y,range)
       for(i <- 0 until re.length){
         println(re(i))
       }
       println(queryMini(x,y))
       println(bruteforceQuery(x,y))
-      /*var x = cin.nextInt()
-      var y = cin.nextInt()
-      println(GraphDistance(x,y))*/
     }
-  }
+  } 
+
 }

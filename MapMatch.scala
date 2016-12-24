@@ -17,8 +17,6 @@ object MapMatch {
     matches.foreach(println)
   }
 
-  
-
   /**\
     *
     * @param points array like [[103.0,1.0],[...]]
@@ -85,13 +83,13 @@ object MapMatch {
   def getNeighbourPoints(dataPoint:Array[Double]): Array[GeoPoint]={
     //TODO: remove dummy
     if (dataPoint(0)==1.0){
-      Array(new GeoPoint(1,1,1.0,1),new GeoPoint(1,2,2.0,1))
+      Array(new GeoPoint(1,1,1.0,1,0.0),new GeoPoint(1,2,2.0,1,0.0))
     }
     else if(dataPoint(0)==2.0){
-      Array(new GeoPoint(2,1,1.0,1),new GeoPoint(2,2,2.0,1))
+      Array(new GeoPoint(2,1,1.0,1,0.0),new GeoPoint(2,2,2.0,1,0.0))
     }
     else{
-      Array(new GeoPoint(3,1,1.0,1),new GeoPoint(3,2,2.0,1))
+      Array(new GeoPoint(3,1,1.0,1,0),new GeoPoint(3,2,2.0,1,0))
     }
   }
 
