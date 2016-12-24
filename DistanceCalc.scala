@@ -12,13 +12,13 @@ class DistanceCalc(roadSegs:Array[Array[Double]]) {
    * ]
    */
   //TODO: process the roadSegs into graph class construction
- 
+   
+  var G = new Graph
+  G.Init(roadSegs)
      /**
    * return the great circle distance between p1 and p2
    */
-  
-  var G = new Graph
-  G.Init(roadSegs)
+
  
   def getDistance(p1:Array[Double],p2:Array[Double]): Double = {
     //TODO: implement
@@ -35,7 +35,7 @@ class DistanceCalc(roadSegs:Array[Array[Double]]) {
    */
   def getShortestRouteDistance(p1:GeoPoint,p2:GeoPoint): Double = {
     //TODO: implement
-    return G.NormalToReal(G.PointGraphDistance(p1.roadSegId,p1.t,p2.roadSegId,p2.t))
+    return G.NormalToMeter(G.PointGraphDistance(p1.roadSegId,p1.t,p2.roadSegId,p2.t))
   }
   
 }

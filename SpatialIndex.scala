@@ -23,9 +23,11 @@ class SpatialIndex(roadSegs:Array[Array[Double]]) {
     var a = new LinkedList[GeoPoint]
     var i = 0
     for(i <- 0 until re.size){
-      re(i).x = G.NormalToReal(re(i).x)
-      re(i).y = G.NormalToReal(re(i).y)
-      re(i).dist = G.NormalToReal(re(i).dist)
+      var p = G.NormalToGeoLoc(new vector(re(i).x,re(i).y))
+      
+      re(i).x = p.x
+      re(i).y = p.y
+      re(i).dist = G.NormalToMeter(re(i).dist)
       if(re(i).dist<=radius) a.addLast(re(i))
     }
     

@@ -49,7 +49,8 @@ class Graph {
   def cross(a:vector,b:vector):Double = a.x*b.y-a.y*b.x
   def dot(a:vector,b:vector):Double = a.x*b.x+a.y*b.y
   def length(a:vector):Double = sqrt(dot(a,a))
-  def NormalToReal(a:Double):Double = a*wd*MeterPerDegree
+  def NormalToMeter(a:Double):Double = a*wd*MeterPerDegree
+  def NormalToGeoLoc(a:vector):vector = new vector(a.x*wd+lowx,a.y*wd+lowy)
 
   def getDistanceToLine(p:vector,a:vector,b:vector):Double = {
     var v1 = b-a
@@ -287,7 +288,7 @@ class Graph {
     //println(cnt)
   }
   
-  val boundfactor = 4.0
+  val boundfactor = 5.0
   val largefactor = 10000.0
   def GraphDistance(a:Int,b:Int):Double = {
     var dis = new TreeMap[Int,Double]
