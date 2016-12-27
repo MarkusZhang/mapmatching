@@ -64,7 +64,7 @@ class Graph {
   def getDistanceToSegment(p:vector,a:vector,b:vector):pairDD = {
     var v1 = b-a
     var v2 = p-a
-    var t = dot(v2,v1) / length(v1)
+    var t = dot(v2,v1) / dot(v1,v1)
     var re = new pairDD(0.0,0.0)
     
     if(t<=0.0){
