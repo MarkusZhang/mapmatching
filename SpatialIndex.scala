@@ -1,7 +1,6 @@
+package mapmatch
 
-import java.io._
 import java.util._
-import scala.math._
 
 class SpatialIndex(roadSegs:Array[Array[Double]]) {
   //TODO: process the roadSegs into graph upon class construction

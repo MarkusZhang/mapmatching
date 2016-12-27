@@ -1,6 +1,9 @@
+package mapmatch
+
 
 import java.io._
 import java.util._
+
 import scala.math._
 
 class Graph {
@@ -176,11 +179,11 @@ class Graph {
     n = roadSegs.length
 
     var i:Int = 0
-    var j=i;
-    var k=i;
+    var j=i
+    var k=i
     for(i <- 0 until n){
       LinkId(i) = roadSegs(i)(4).toInt
-      LinkCat(i) = "Dont't Know"
+      LinkCat(i) = "Don't Know"
       LaneNum(i) = -1
       ZoneId(i) = i
       RoadName(i) = "Road " + i

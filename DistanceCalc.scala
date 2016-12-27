@@ -1,7 +1,4 @@
-
-import java.io._
-import java.util._
-import scala.math._
+package mapmatch
 
 class DistanceCalc(roadSegs:Array[Array[Double]]) {
   /**
@@ -15,11 +12,10 @@ class DistanceCalc(roadSegs:Array[Array[Double]]) {
    
   var G = new Graph
   G.Init(roadSegs)
-     /**
-   * return the great circle distance between p1 and p2
-   */
 
- 
+  /**
+   * return the great circle distance between p1 and p2 (in meter)
+   */
   def getDistance(p1:Array[Double],p2:Array[Double]): Double = {
     //TODO: implement
     var p1x = p1(0)-G.lowx

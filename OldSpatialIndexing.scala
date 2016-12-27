@@ -1,5 +1,8 @@
+package mapmatch
+
 import java.io._
 import java.util._
+
 import scala.math._
 object SpatialIndexing {
   val MAXN = 60000
