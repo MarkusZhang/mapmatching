@@ -51,7 +51,7 @@ object test {
       var i=0;
       for(i<- 0 until re.length){
         println(re(i))
-        println(G.RoadName(re(i).roadSegId)+" "+G.Point(re(i).roadSegId)(0)+" "+G.Point(re(i).roadSegId)(1))
+        println(G.RoadName(re(i).roadSegId)+" "+G.NormalToGeoLoc(G.Point(re(i).roadSegId)(0))+" "+G.NormalToGeoLoc(G.Point(re(i).roadSegId)(1)))
         println()
       }
     }
