@@ -9,53 +9,53 @@ import scala.math._
 class Graph {
     
   val MAXN = 60000
-  var LinkId = new Array[Int](MAXN)    //Most of the Following store the information specified in raw data
-  var LinkCat = new Array[String](MAXN)  
+  var LinkId = new Array[Int](MAXN)
+  var LinkCat = new Array[String](MAXN)
   var LaneNum = new Array[Int](MAXN)
   var ZoneId = new Array[Int](MAXN)
   var RoadName = new Array[String](MAXN)
-  var Node = new Array[Int](MAXN)  //Save Node number of a road segment (which is 2 for all entries...)
-  var Point = Array.ofDim[vector](MAXN,2)  //save 2 end point of a road segment
-  var n = 0  //total nunmber of road segment
-  val divx = 500  //factor used for normalization, number of grid partitioned on x axis
-  val range = 5  //Old vairable, range of squares search for a given point
-  var Table = new Array[LinkedList[Int]]((divx+1)*(divx+1))  //Id for the roadSegments related to the specific grid
-  var divy = 100  //No use, May be deleted
+  var Node = new Array[Int](MAXN)
+  var Point = Array.ofDim[vector](MAXN,2)
+  var n = 0
+  val divx = 500
+  val range = 5
+  var Table = new Array[LinkedList[Int]]((divx+1)*(divx+1))
+  var divy = 100
   
-  var highx = 0.0  //upper bound of latitude of all point
-  var lowx = 0.0  //lower bound of .....
-  var highy = 0.0  //upper bound of longitude of all point
-  var lowy = 0.0  //lower bound of .....
-  var gapx = 0.0  // difference between upper bound and lower bound of latitude
-  var gapy = 0.0  //difference .....................................of longitude
-  var wd = 0.0    //degree per unit partition/grid
+  var highx = 0.0
+  var lowx = 0.0
+  var highy = 0.0
+  var lowy = 0.0
+  var gapx = 0.0
+  var gapy = 0.0
+  var wd = 0.0
   
-  val MeterPerDegree=6371000/180.0*math.Pi  //Meter per degree, constant value
+  val MeterPerDegree=6371000/180.0*math.Pi
   
-  val sourceFile = "e:/taxi/LTA.txt"  
+  val sourceFile = "e:/taxi/LTA.txt"
   
-  var TotalNode = 0  //number of unique node 
-  var adj = new Array[LinkedList[Int]](MAXN)  //adjacent list of graph
-  var map = new TreeMap[vector,Int](new Comparator[vector](){  //map the point to its Id
+  var TotalNode = 0
+  var adj = new Array[LinkedList[Int]](MAXN)
+  var map = new TreeMap[vector,Int](new Comparator[vector](){
     def compare(a:vector,b:vector):Int = {
       if(a.x<b.x||(a.x==b.x&&a.y<b.y)) return -1
       if(a.x==b.x&&a.y==b.y) return 0
       return 1
     }
   })
-  var NodeLoc = new Array[vector](MAXN)  // map point id to point
+  var NodeLoc = new Array[vector](MAXN)
   
-  var i = 0  //iterator variable
+  var i = 0
   var j = 0
   var k = 0
   
-  def cross(a:vector,b:vector):Double = a.x*b.y-a.y*b.x  //vector cross product
-  def dot(a:vector,b:vector):Double = a.x*b.x+a.y*b.y  
-  def length(a:vector):Double = sqrt(dot(a,a))  //length of vector
-  def NormalToMeter(a:Double):Double = a*wd*MeterPerDegree  //convert nomalized distance value to real value in meter
-  def NormalToGeoLoc(a:vector):vector = new vector(a.x*wd+lowx,a.y*wd+lowy)  //convert normalized location to real location  (longitude,latitude)
+  def cross(a:vector,b:vector):Double = a.x*b.y-a.y*b.x
+  def dot(a:vector,b:vector):Double = a.x*b.x+a.y*b.y
+  def length(a:vector):Double = sqrt(dot(a,a))
+  def NormalToMeter(a:Double):Double = a*wd*MeterPerDegree
+  def NormalToGeoLoc(a:vector):vector = new vector(a.x*wd+lowx,a.y*wd+lowy)
 
-  def getDistanceToLine(p:vector,a:vector,b:vector):Double = {   
+  def getDistanceToLine(p:vector,a:vector,b:vector):Double = {
     var v1 = b-a
     var v2 = p-a
     return abs(cross(v1,v2))/length(v1)
@@ -64,7 +64,7 @@ class Graph {
   def getDistanceToSegment(p:vector,a:vector,b:vector):pairDD = {
     var v1 = b-a
     var v2 = p-a
-    var t = dot(v2,v1) / length(v1)/length(v1)
+    var t = dot(v2,v1) / length(v1)
     var re = new pairDD(0.0,0.0)
     
     if(t<=0.0){
@@ -81,17 +81,17 @@ class Graph {
     }
     return re;
   }
-  def isSegmentProperIntersection(a1:vector,a2:vector,b1:vector,b2:vector):Boolean = {  //check whether 2 segments intersect
+  def isSegmentProperIntersection(a1:vector,a2:vector,b1:vector,b2:vector):Boolean = {
     var c1 = cross(a2-a1,b1-a1)
     var c2 = cross(a2-a1,b2-a1)
     var c3 = cross(b2-b1,a1-b1)
     var c4 = cross(b2-b1,a2-b1)
     return c1*c2<=0.0&&c3*c4<=0.0
   }
-  def inBox(x:Double,y:Double,p:vector):Boolean = {  //return true if the point p is in the box.
+  def inBox(x:Double,y:Double,p:vector):Boolean = {
     return p.x>=x&&p.x<=x+1.0&&p.y>=y&&p.y<=y+1.0
   }
-  def belong(x:Int,y:Int,a1:vector,a2:vector):Boolean = {  //return true if the segment fully in the box or intersect with box
+  def belong(x:Int,y:Int,a1:vector,a2:vector):Boolean = {
     var re:Boolean = false
     re=re||inBox(x,y,a1)
     re=re||inBox(x,y,a2)
@@ -102,7 +102,7 @@ class Graph {
     return re
   }
   
-  def index() = {  
+  def index() = {
     for(i <- 0 until (divx+1)*(divx+1)){
       Table(i) = new LinkedList[Int]
     }
@@ -128,9 +128,9 @@ class Graph {
     }*/
   }
   
-  def check(x:Int,y:Int):Boolean = x>=0&&x<divx+1&&y>=0&&y<divx+1 //check whether the index of a grid is valid
+  def check(x:Int,y:Int):Boolean = x>=0&&x<divx+1&&y>=0&&y<divx+1
   
-  def querySet(x:Double,y:Double,range:Int):TreeSet[Int] = {  //query the set of road segments near the given point
+  def querySet(x:Double,y:Double,range:Int):TreeSet[Int] = {
     var bx = x.toInt
     var by = y.toInt
     var s = new TreeSet[Int]
@@ -142,9 +142,9 @@ class Graph {
     return s
   }
   
-  def querySize(x:Double,y:Double):Int = querySet(x,y,range).size()  
+  def querySize(x:Double,y:Double):Int = querySet(x,y,range).size()
   
-  def queryMini(x:Double,y:Double):Double = {  //query the minimum distance to the segment
+  def queryMini(x:Double,y:Double):Double = {
     var ans:Double = 100.0
     var s = querySet(x,y,range)
     var c = s.iterator()
@@ -156,7 +156,7 @@ class Graph {
     return ans
   }
   
-  def queryTop(x:Double,y:Double,range:Int):Array[GeoPoint] = {  //return the nearest point of each road segment to the given point, sorted by the distance
+  def queryTop(x:Double,y:Double,range:Int):Array[GeoPoint] = {
     var s = querySet(x,y,range)
     var c = s.iterator()
     var size:Int = s.size()
@@ -223,7 +223,7 @@ class Graph {
   }
 
   
-  def normalize() = {   //normalize the input latitude/longitude to increase the computation precision
+  def normalize() = {
     highx = Point(0)(0).x
     highy = Point(0)(0).y
     lowx=highx
@@ -251,7 +251,7 @@ class Graph {
     
   }
   
-  def bruteforceQuery(a:Double,b:Double):Double = {  //calculate the smallest distance based on bruteforce method
+  def bruteforceQuery(a:Double,b:Double):Double = {
     var p = new vector(a,b)
     var ans = 100.0
     for(i <- 0 until n){
@@ -261,7 +261,7 @@ class Graph {
   }
   
   
-  def GraphProcessing() = {  //  Convert the raw data to graph
+  def GraphProcessing() = {
     TotalNode = 0
     var cnt = 0
     for(i <- 0 until MAXN){
@@ -293,7 +293,7 @@ class Graph {
   
   val boundfactor = 5.0
   val largefactor = 10000.0
-  def GraphDistance(a:Int,b:Int):Double = {  //compute 2 road cross distance along the road map
+  def GraphDistance(a:Int,b:Int):Double = {
     var dis = new TreeMap[Int,Double]
     var inq = new TreeMap[Int,Boolean]
     dis.put(a,0.0)
@@ -329,7 +329,7 @@ class Graph {
     return dis.get(b)
   }
   
-  def PointGraphDistance(u:Int,ut:Double,v:Int,vt:Double):Double = {  //compute 2 points' distance along road map
+  def PointGraphDistance(u:Int,ut:Double,v:Int,vt:Double):Double = {
     var ans:Double = largefactor*divx
     var segu = Point(u)(1)-Point(u)(0)
     var segv = Point(v)(1)-Point(v)(0)
