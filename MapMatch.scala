@@ -11,6 +11,7 @@ object MapMatch {
   val MEASUREMENT_STD = 4.07
   val NEIGHBOUR_RADIUS = 100
   val BETA = 0.2
+  val DEBUG = false
 
   def main(args: Array[String]): Unit ={
     // read road segments
@@ -68,10 +69,20 @@ object MapMatch {
       for(cur <- candPoints.indices){
         var max = -1.0
         val curPoint = candPoints(cur)
+        if (j==1 && DEBUG){
+          println("Candidate point #" + cur + ":\n" + curPoint.toString)
+        }
         // find the most likely parent of p
         for(pre <- prePoints.indices){
           val prePoint = prePoints(pre)
-          val alt = scores(j-1)(pre) * getTransitionProb(prePoint,curPoint,preRawPoint,curRawPoint,dCalc)
+          val transitionProb = getTransitionProb(prePoint,curPoint,preRawPoint,curRawPoint,dCalc)
+          val alt = scores(j-1)(pre) * transitionProb
+          if (j==1 && DEBUG){
+            println("Pre point #" + pre + ":\n" + prePoint.toString)
+            println("Transition prob: " + transitionProb)
+            println("Sensor prob: " + scores(j-1)(pre))
+            println("Product: " + alt)
+          }
           if (alt > max){
             max = alt
             parents(j)(cur) = pre
@@ -122,7 +133,7 @@ object MapMatch {
   def getTransitionProb(candP1:GeoPoint, candP2:GeoPoint, rawP1:Array[Double], rawP2:Array[Double],dCalc:DistanceCalc): Double = {
     // get distance difference
     val rawDist = dCalc.getDistance(rawP1,rawP2)
-    val candDist = dCalc.getDistance(Array(candP1.x,candP1.y),Array(candP2.x,candP2.y))
+    val candDist = dCalc.getShortestRouteDistance(candP1,candP2)
     val diff = abs(rawDist-candDist)
 
     // get probability
