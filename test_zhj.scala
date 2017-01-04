@@ -1,13 +1,14 @@
 
 import java.io._
 import java.util._
+import scala.util._
 import scala.math._
 import mapmatch._
+import NewMap._
+
 object test {
-  var G = new Graph
-  G.OldInit()
-  
-    def getNeighbours(px:Double,py:Double,radius:Double): Array[GeoPoint] = {
+  var G = new NewMapProcessor  
+  /*def getNeighbours(px:Double,py:Double,radius:Double): Array[GeoPoint] = {
     //TODO: remove the dummy implementation
     var npx = px-G.lowx
     npx/=G.wd
@@ -34,11 +35,15 @@ object test {
       b(pos)=c.next()
       pos=pos+1
     }
-    
     return b
-  }
+  }*/
+  
+  
+  
   def main(args:Array[String]):Unit = {
-    var cin = new Scanner(System.in)
+    
+    //println(scala.util.Properties.versionString)
+    /*var cin = new Scanner(System.in)
     while(true){
       var x:Double = 0.0
       var y = 0.0
@@ -54,7 +59,7 @@ object test {
         println(G.RoadName(re(i).roadSegId)+" "+G.NormalToGeoLoc(G.Point(re(i).roadSegId)(0))+" "+G.NormalToGeoLoc(G.Point(re(i).roadSegId)(1)))
         println()
       }
-    }
-    
+    }*/
+    G.Init()
   }
 }
