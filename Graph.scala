@@ -285,7 +285,7 @@ class Graph {
       
       //println(u+" "+v)
       adj(u).addLast(v)
-      adj(v).addLast(u)
+      //adj(v).addLast(u)
     }
     TotalNode = cnt
     //println(cnt)

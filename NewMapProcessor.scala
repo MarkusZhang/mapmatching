@@ -6,7 +6,7 @@ import scala.math._
 import mapmatch._
 
 class NewMapProcessor {
-  val sourceFile = "e:/HM_MapMatching/road_network_modified.txt"
+  val sourceFile = "e:/HM_MapMatching/road_network.txt"
   
   var n = 0
   
@@ -18,7 +18,7 @@ class NewMapProcessor {
   var MAXN = 1000000
   
   var LinkId = new Array[String](MAXN)
-  var LinkCat = new Array[String](MAXN)
+  var LinkCat = new Array[Int](MAXN)
   var LaneNum = new Array[Int](MAXN)
   var ZoneId = new Array[String](MAXN)
   var RoadName = new Array[String](MAXN)
@@ -58,6 +58,7 @@ class NewMapProcessor {
 
   def ReadInput() = {
     var in = new Scanner(new File(sourceFile))
+    in.nextLine()
     //var in = new Scanner(System.in)
     var s = ""
     var base=""
@@ -86,7 +87,7 @@ class NewMapProcessor {
         else edgeID = base + i
         LinkId(edgeCnt) = edgeID
         LaneNum(edgeCnt) = 9999
-        LinkCat(edgeCnt) = "Two Way:"+twoway
+        LinkCat(edgeCnt) = twoway
         ZoneId(edgeCnt) = "Don't Know"
         RoadName(edgeCnt) = "Don'tKnow"
         Node(edgeCnt) = 2
@@ -245,7 +246,7 @@ class NewMapProcessor {
       
       //println(u+" "+v)
       adj(u).addLast(v)
-      adj(v).addLast(u)
+      if(LinkCat(i)>0) adj(v).addLast(u)
     }
     TotalNode = cnt
     //println(cnt)
