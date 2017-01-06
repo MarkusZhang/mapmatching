@@ -7,7 +7,7 @@ import mapmatch._
 import NewMap._
 
 object test {
-  var G = new NewMapProcessor  
+  var G = new SeatleGraph  
   /*def getNeighbours(px:Double,py:Double,radius:Double): Array[GeoPoint] = {
     //TODO: remove the dummy implementation
     var npx = px-G.lowx
@@ -61,5 +61,6 @@ object test {
       }
     }*/
     G.Init()
+    println(G.n)
   }
 }
