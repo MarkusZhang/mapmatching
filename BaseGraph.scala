@@ -1,11 +1,11 @@
-package NewMap
+package mapmatch
 
 import java.io._
 import java.util._
 import scala.math._
-import mapmatch._
 
-class NewMapProcessor {
+class BaseGraph {
+  
   var sourceFile = "e:/HM_MapMatching/road_network.txt"
   
   var n = 0
@@ -18,16 +18,16 @@ class NewMapProcessor {
   var MAXN = 1000000
   
   var LinkId = new Array[String](MAXN)
-  var LinkCat = new Array[Int](MAXN)
+  var LinkCat = new Array[String](MAXN)
   var LaneNum = new Array[Int](MAXN)
   var ZoneId = new Array[String](MAXN)
   var RoadName = new Array[String](MAXN)
   var Node = new Array[Int](MAXN)
   var Point = Array.ofDim[vector](MAXN,2)
   
-  val divx = 1000
-  val range = 10
-  val TableSz = (divx+1)*(divx+1)*2
+  var divx = 1000
+  var range = 10
+  var TableSz = (divx+1)*(divx+1)*2
   var Table = new Array[LinkedList[Int]](TableSz)
   var divy = 100
   
@@ -56,58 +56,33 @@ class NewMapProcessor {
   var NodeLoc = new Array[vector](MAXN)
   
 
-  def ReadInput() = {
-    var in = new Scanner(new File(sourceFile))
-    in.nextLine()
-    //var in = new Scanner(System.in)
-    var s = ""
-    var base=""
-    var node1 = ""
-    var node2 = ""
-    var twoway = 0
-    var speed = 0.0
-    var vertexCnt = 0
-    var lineString = ""
-    var maxi = 0
-    while(in.hasNext()){
-      base = in.next()
-      node1 = in.next()
-      node2 = in.next()
-      twoway = in.nextInt()
-      speed = in.nextDouble()
-      vertexCnt = in.nextInt()
-      maxi = max(maxi,vertexCnt)
-      lineString = in.nextLine()
-      lineString = lineString.substring(12,lineString.length()-1)
-      //println(lineString)
-      var P = lineString.split(",")
-      var ss = new Scanner(P(0))
-      var pre = new vector(ss.nextDouble(),ss.nextDouble())
-      for(i <- 1 until vertexCnt){
-        var edgeID = base
-        if(i<10) edgeID = base +"00"+i
-        else if(i<100) edgeID = base + "0" + i
-        else edgeID = base + i
-        LinkId(edgeCnt) = edgeID
-        LaneNum(edgeCnt) = 9999
-        LinkCat(edgeCnt) = twoway
-        ZoneId(edgeCnt) = "Don't Know"
-        RoadName(edgeCnt) = "Don'tKnow"
-        Node(edgeCnt) = 2
-        ss = new Scanner(P(i))
-        var en = new vector(ss.nextDouble(),ss.nextDouble())
-        Point(edgeCnt)(0)=new vector(pre.x,pre.y)
-        Point(edgeCnt)(1)=new vector(en.x,en.y)
-        pre=en
-        //println(pre)
-        edgeCnt = edgeCnt+1
-      }
-      //println(s)
-    }
-    //println(edgeCnt)
-    //println(maxi)
-    n=edgeCnt
+  def ReadInputFromFile() = {
+    
   }
+  
+  def ReadInput(roadSegs:Array[Array[Double]]) = {
+    //var in = new Scanner(System.in)
+    n = roadSegs.length
+
+    var i:Int = 0
+    var j=i
+    var k=i
+    for(i <- 0 until n){
+      LinkId(i) = roadSegs(i)(4).toLong+""
+      LinkCat(i) = "Don't Know"
+      LaneNum(i) = -1
+      ZoneId(i) = i + ""
+      RoadName(i) = "Road " + i
+      //println(RoadName(i))
+      Node(i) = 2
+      for(j <- 0 until Node(i)){
+        Point(i)(j) = new vector(roadSegs(i)(j*2),roadSegs(i)(j*2+1))
+        //Point(i)(j).x = in.nextDouble()
+        //Point(i)(j).y = in.nextDouble()
+      }
+    }     
+  }
+
   
   def normalize() = {
     highx = Point(0)(0).x
@@ -120,7 +95,7 @@ class NewMapProcessor {
       highy = max(highy,Point(i)(j).y)
       lowy=min(lowy,Point(i)(j).y)
     }
-    LongitudeNormalizeFactor = cos(lowy/180.0*math.Pi)
+    LongitudeNormalizeFactor = cos((highy+lowy)/2.0/180.0*math.Pi)
 
     wd = highx-lowx
     wd /= divx
@@ -142,7 +117,6 @@ class NewMapProcessor {
     /*for(i <- 0 until n){
       println(Point(i)(0))
     }*/
-    
   }
   
   def cross(a:vector,b:vector):Double = a.x*b.y-a.y*b.x
@@ -246,11 +220,10 @@ class NewMapProcessor {
       var u = map.get(Point(i)(0))
       var v = map.get(Point(i)(1))
       
-      if(u==null||v==null) println("!")
+      if(u==null||v==null) println("Invalid Point Detected!")
       
       //println(u+" "+v)
       adj(u).addLast(v)
-      if(LinkCat(i)>0) adj(v).addLast(u)
     }
     TotalNode = cnt
     //println(cnt)
@@ -349,31 +322,17 @@ class NewMapProcessor {
   }
   
   def PointGraphDistance(u:Int,ut:Double,v:Int,vt:Double):Double = {
-    var ans:Double = largefactor*divx
+    var ans:Double = GraphDistance(map.get(Point(u)(1)),map.get(Point(v)(0)))
     var segu = Point(u)(1)-Point(u)(0)
     var segv = Point(v)(1)-Point(v)(0)
-    for(i <- 0 until 2){
-      for(j <- 0 until 2){
-        var re = GraphDistance(map.get(Point(u)(i)),map.get(Point(v)(j)))
-        if(i==0){
-          re+=ut*length(segu)
-        }else{
-          re+=(1.0-ut)*length(segu)
-        }
-        if(j==0){
-          re+=vt*length(segv)
-        }else{
-          re+=(1.0-vt)*length(segv)
-        }
-        ans=min(ans,re)
-      }
-    }
+    ans+=(1.0-ut)*length(segu)
+    ans+=vt*length(segv)
     return ans
   }
   
   def Init() = {
-    println("Reading Input...")
-    ReadInput()
+    println("Reading Input from File...")
+    ReadInputFromFile()
     println("Read Input Complete!!")
     normalize()
     println("Normalize Complete!!")
@@ -382,6 +341,16 @@ class NewMapProcessor {
     GraphProcessing()
     println("Graph Processing Complete!!")
   }
-
   
+  def Init(roadSegs:Array[Array[Double]]) = {
+    println("Reading Input from Array...")
+    ReadInput(roadSegs)
+    println("Readinput Complete!!")
+    normalize()
+    println("Normalize Complete!!")
+    index()
+    println("Index Complete!!")
+    GraphProcessing()
+    println("GraphProcessing Complete!!")
+  }
 }
