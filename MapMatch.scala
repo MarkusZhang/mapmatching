@@ -6,42 +6,28 @@ import scala.math._
 /**
   * Created by zhangjie on 12/22/2016.
   */
-object MapMatch {
+class MapMatch(roadNetwork:Array[Array[Double]]) {
+  // constructor
+  val distanceCalc = new DistanceCalc(roadNetwork)
+  val indexer = new SpatialIndex(roadNetwork)
 
   val MEASUREMENT_STD = 4.07
   val NEIGHBOUR_RADIUS = 100
   val BETA = 0.2
   val DEBUG = false
 
-  def main(args: Array[String]): Unit ={
-    // read road segments
-    val ois = new ObjectInputStream(new FileInputStream("D:/fyp/LTA_serialized.txt"))
-    val arr = ois.readObject.asInstanceOf[Array[Array[Double]]]
-    ois.close()
+  def getMatchedRoute(rawPoints:Array[Array[Double]]): Array[GeoPoint] = {
 
-    // init distance calc and spatial index
-    val distanceCalc = new DistanceCalc(arr)
-    val indexer = new SpatialIndex(arr)
-
-    val points = Array(
-      Array(103.70737552659193,1.3414189015502869),
-      Array(103.70917797104994,1.3416226935619133),
-      Array(103.71087312714735,1.340678814628501),
-      Array(103.71293306367079,1.3418157596625286),
-      Array(103.71481060998121,1.3428025417165426)
-    )
-    val matches = getBestMatch(points = points,dCalc = distanceCalc,indexer=indexer)
-    matches.foreach(println)
+    val matches = _getBestMatch(points = rawPoints,dCalc = distanceCalc,indexer=indexer)
+    return matches
   }
 
-  
-
   /**\
-    *
+    * private function
     * @param points array like [[103.0,1.0],[...]]
     * @return
     */
-  def getBestMatch(points:Array[Array[Double]],dCalc:DistanceCalc,indexer:SpatialIndex): Array[GeoPoint]={
+  def _getBestMatch(points:Array[Array[Double]], dCalc:DistanceCalc, indexer:SpatialIndex): Array[GeoPoint]={
     var candidates = new Array[Array[GeoPoint]](points.length)
     var scores = new Array[Array[Double]](points.length)
     var parents = new Array[Array[Int]](points.length)
@@ -49,6 +35,10 @@ object MapMatch {
     // prepare candidates
     for(i <- points.indices){
       val p = points(i)
+      if (p==null){
+        println("======================================")
+        println("point is null")
+      }
       val matches = indexer.getNeighbours(p(0),p(1),NEIGHBOUR_RADIUS) //TODO: add graph as input
       candidates(i) = matches
       // initialize parents and scores
@@ -57,7 +47,7 @@ object MapMatch {
     }
 
     // initialize scores
-    scores(0) = candidates(0).map(x=>getMeasurementProb(x.dist))
+    scores(0) = candidates(0).map(x=>_getMeasurementProb(x.dist))
 
     // find most likely path
     for(j <- 1 until points.length){
@@ -75,7 +65,7 @@ object MapMatch {
         // find the most likely parent of p
         for(pre <- prePoints.indices){
           val prePoint = prePoints(pre)
-          val transitionProb = getTransitionProb(prePoint,curPoint,preRawPoint,curRawPoint,dCalc)
+          val transitionProb = _getTransitionProb(prePoint,curPoint,preRawPoint,curRawPoint,dCalc)
           val alt = scores(j-1)(pre) * transitionProb
           if (j==1 && DEBUG){
             println("Pre point #" + pre + ":\n" + prePoint.toString)
@@ -88,7 +78,7 @@ object MapMatch {
             parents(j)(cur) = pre
           }
         }
-        scores(j)(cur) = max * getMeasurementProb(curPoint.dist)
+        scores(j)(cur) = max * _getMeasurementProb(curPoint.dist)
       }
     }
 
@@ -124,13 +114,13 @@ object MapMatch {
 //    }
 //  }
 
-  def getMeasurementProb(dist:Double): Double={
+  def _getMeasurementProb(dist:Double): Double={
     val coff = 1 / (sqrt(2 * Pi) * MEASUREMENT_STD)
     val power = -0.5 * pow(dist/MEASUREMENT_STD,2)
     coff * exp(power)
   }
 
-  def getTransitionProb(candP1:GeoPoint, candP2:GeoPoint, rawP1:Array[Double], rawP2:Array[Double],dCalc:DistanceCalc): Double = {
+  def _getTransitionProb(candP1:GeoPoint, candP2:GeoPoint, rawP1:Array[Double], rawP2:Array[Double], dCalc:DistanceCalc): Double = {
     // get distance difference
     val rawDist = dCalc.getDistance(rawP1,rawP2)
     val candDist = dCalc.getShortestRouteDistance(candP1,candP2)
@@ -141,3 +131,5 @@ object MapMatch {
   }
 
 }
+
+
