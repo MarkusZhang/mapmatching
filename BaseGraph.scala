@@ -353,4 +353,17 @@ class BaseGraph {
     GraphProcessing()
     println("GraphProcessing Complete!!")
   }
+  
+  def ConvertToArray():Array[Array[Double]] = {
+    ReadInputFromFile()
+    var a = Array.ofDim[Double](n,5)
+    for( i <- 0 until n){
+      a(i)(0) = Point(i)(0).x
+      a(i)(1) = Point(i)(0).y
+      a(i)(2) = Point(i)(1).x
+      a(i)(3) = Point(i)(1).y
+      a(i)(4) = i
+    }
+    return a
+  }
 }

@@ -28,5 +28,6 @@ class SingaporeGraph extends BaseGraph{
         //Point(i)(j).y = in.nextDouble()
       }
     }     
+
   }
 }
