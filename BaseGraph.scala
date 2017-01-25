@@ -60,7 +60,7 @@ class BaseGraph {
     
   }
   
-  def ReadInput(roadSegs:Array[Array[Double]]) = {
+  def ReadInput(roadSegs:Array[roadSeg]) = {
     //var in = new Scanner(System.in)
     n = roadSegs.length
 
@@ -68,18 +68,20 @@ class BaseGraph {
     var j=i
     var k=i
     for(i <- 0 until n){
-      LinkId(i) = roadSegs(i)(4).toLong+""
+      LinkId(i) = roadSegs(i).id
       LinkCat(i) = "Don't Know"
       LaneNum(i) = -1
       ZoneId(i) = i + ""
       RoadName(i) = "Road " + i
       //println(RoadName(i))
       Node(i) = 2
-      for(j <- 0 until Node(i)){
+      Point(i)(0) = roadSegs(i).a
+      Point(i)(1) = roadSegs(i).b
+      /*for(j <- 0 until Node(i)){
         Point(i)(j) = new vector(roadSegs(i)(j*2),roadSegs(i)(j*2+1))
         //Point(i)(j).x = in.nextDouble()
         //Point(i)(j).y = in.nextDouble()
-      }
+      }*/
     }     
   }
 
@@ -342,7 +344,7 @@ class BaseGraph {
     println("Graph Processing Complete!!")
   }
   
-  def Init(roadSegs:Array[Array[Double]]) = {
+  def Init(roadSegs:Array[roadSeg]) = {
     println("Reading Input from Array...")
     ReadInput(roadSegs)
     println("Readinput Complete!!")
@@ -354,15 +356,11 @@ class BaseGraph {
     println("GraphProcessing Complete!!")
   }
   
-  def ConvertToArray():Array[Array[Double]] = {
+  def ConvertToArray():Array[roadSeg] = {
     ReadInputFromFile()
-    var a = Array.ofDim[Double](n,5)
+    var a = new Array[roadSeg](n)
     for( i <- 0 until n){
-      a(i)(0) = Point(i)(0).x
-      a(i)(1) = Point(i)(0).y
-      a(i)(2) = Point(i)(1).x
-      a(i)(3) = Point(i)(1).y
-      a(i)(4) = i
+      a(i) = new roadSeg(Point(i)(0),Point(i)(1),LinkId(i))
     }
     return a
   }

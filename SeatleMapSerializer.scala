@@ -8,11 +8,11 @@ import scala.math._
 object SeatleMapSerializer {
   def main(args:Array[String]) = {
     var G = new SeatleGraph
-    //G.sourceFile = "Your road_network.txt file location"
+    G.sourceFile = "e:/HM_MapMatching/road_network.txt"
     println("Converting to Array...")
     var arr = G.ConvertToArray()
     println("Conversion Complete")
-    val oos = new ObjectOutputStream(new FileOutputStream("Your file destination"))
+    val oos = new ObjectOutputStream(new FileOutputStream("e:/HM_MapMatching/road_network_serialized.txt"))
     oos.writeObject(arr)
     oos.close
     println("Finish!")
