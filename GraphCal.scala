@@ -10,6 +10,7 @@ class GraphCal(var G:BaseGraph) {
   def getNeighbours(px:Double,py:Double,radius:Double): Array[GeoPoint] = {
     //TODO: remove the dummy implementation
     var npx = px-G.lowx
+    npx*=G.LongitudeNormalizeFactor
     npx/=G.wd
     var npy= py-G.lowy
     npy/=G.wd

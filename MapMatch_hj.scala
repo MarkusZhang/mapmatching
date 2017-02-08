@@ -27,6 +27,8 @@ class MapMatch_hj(G:BaseGraph) {
         println("point is null")
       }
       candidates(i) = GC.getNeighbours(p(0),p(1),NEIGHBOUR_RADIUS)
+      //println(candidates(i).length)
+      
       // initialize parents and scores
       parents(i) = new Array[Int](candidates(i).length)
       scores(i) = new Array[Double](candidates(i).length)
@@ -37,12 +39,13 @@ class MapMatch_hj(G:BaseGraph) {
     for(i <- 0 until scores(0).length){
       scores(0)(i) = _getMeasurementProb(candidates(0)(i).dist)
       parents(0)(i) = -1
+      //println(candidates(0)(i))
     }
     
-    for( i <- 1 until Points.length){
-      for(j <- 0 until Points(i).length){
+    for( i <- 1 until candidates.length){
+      for(j <- 0 until candidates(i).length){
         scores(i)(j) = -1000000000.0
-        for(k <- 0 until Points(i-1).length){
+        for(k <- 0 until candidates(i-1).length){
           var ts = scores(i-1)(k) + _getTransitionProb(candidates(i)(j),candidates(i-1)(k),Points(i),Points(i-1));
           if(scores(i)(j)<ts){
             scores(i)(j)=ts

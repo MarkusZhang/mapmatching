@@ -7,7 +7,7 @@ import mapmatch._
 
 object SparkApp_hj {
   def getMatcher:MapMatch_hj = {
-    var temp = new SeatleGraph
+    var temp = new SingaporeGraph
     temp.Init()
     
     val matcher = new MapMatch_hj(temp)
@@ -22,6 +22,22 @@ object SparkApp_hj {
     val sc = new SparkContext(conf)
 
     val matcher = getMatcher
+    
+    var rawPoints = new Array[Array[Double]](2)
+    rawPoints(0) = new Array[Double](2)
+    rawPoints(0)(0)= 103.765026
+    rawPoints(0)(1) = 1.315564
+    
+    rawPoints(1) = new Array[Double](2)
+    rawPoints(1)(0) = 103.765424
+    rawPoints(1)(1) = 1.314633
+    
+    
+    
+    var re = matcher.getMatchedRoute(rawPoints);
+    
+    println(re(0))
+    println(re(1))
     
   }
 }
