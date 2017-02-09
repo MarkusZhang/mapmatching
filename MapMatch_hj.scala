@@ -43,6 +43,7 @@ class MapMatch_hj(G:BaseGraph) {
     }
     
     for( i <- 1 until candidates.length){
+      println(GC.getDistance(Points(i-1),Points(i)))
       for(j <- 0 until candidates(i).length){
         scores(i)(j) = -1000000000.0
         for(k <- 0 until candidates(i-1).length){
@@ -84,7 +85,10 @@ class MapMatch_hj(G:BaseGraph) {
   def _getTransitionProb(candP1:GeoPoint, candP2:GeoPoint, rawP1:Array[Double], rawP2:Array[Double]): Double = {
     // get distance difference
     val rawDist = GC.getDistance(rawP1,rawP2)
+    var t = System.nanoTime()
     val candDist = GC.getShortestRouteDistance(candP1,candP2)
+    t = System.nanoTime()-t
+    println(t/1e9)
     val diff = abs(rawDist-candDist)
 
     // get probability

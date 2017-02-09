@@ -285,9 +285,10 @@ class BaseGraph {
     return a
   }
 
-  val boundfactor = 5.0
+  val boundfactor = 3.0
   val largefactor = 10000.0
   def GraphDistance(a:Int,b:Int):Double = {
+    if(a==b) return 0.0
     var dis = new TreeMap[Int,Double]
     var inq = new TreeMap[Int,Boolean]
     dis.put(a,0.0)
@@ -324,7 +325,15 @@ class BaseGraph {
   }
   
   def PointGraphDistance(u:Int,ut:Double,v:Int,vt:Double):Double = {
+    
+    if(u==v){
+      if(vt<ut) return 1000000000.0
+      return (vt-ut)*(length(Point(u)(1)-Point(u)(0)))
+    }
+    //var t = System.nanoTime()
     var ans:Double = GraphDistance(map.get(Point(u)(1)),map.get(Point(v)(0)))
+    //t=System.nanoTime() - t
+    //println(t/1e9)
     var segu = Point(u)(1)-Point(u)(0)
     var segv = Point(v)(1)-Point(v)(0)
     ans+=(1.0-ut)*length(segu)
