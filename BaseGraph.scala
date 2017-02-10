@@ -326,8 +326,7 @@ class BaseGraph {
   
   def PointGraphDistance(u:Int,ut:Double,v:Int,vt:Double):Double = {
     
-    if(u==v){
-      if(vt<ut) return 1000000000.0
+    if(u==v&&ut<=vt){
       return (vt-ut)*(length(Point(u)(1)-Point(u)(0)))
     }
     //var t = System.nanoTime()
