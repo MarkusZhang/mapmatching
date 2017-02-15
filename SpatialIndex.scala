@@ -2,7 +2,7 @@ package mapmatch
 
 import java.util._
 
-class SpatialIndex(roadSegs:Array[Array[Double]]) {
+class SpatialIndex(roadSegs:Array[Array[Double]])extends java.io.Serializable {
   //TODO: process the roadSegs into graph upon class construction
   
   var G = new Graph

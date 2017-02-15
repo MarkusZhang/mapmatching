@@ -4,7 +4,7 @@ import java.io._
 import java.util._
 import scala.math._
 
-class BaseGraph {
+class BaseGraph extends java.io.Serializable {
   
   var sourceFile = "e:/HM_MapMatching/road_network.txt"
   

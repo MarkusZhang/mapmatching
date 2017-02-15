@@ -6,19 +6,19 @@ import scala.math._
 /**
   * Created by zhangjie on 12/22/2016.
   */
-class MapMatch(roadNetwork:Array[Array[Double]]) {
+class MapMatch (roadNetwork:Array[Array[Double]]) extends java.io.Serializable {
   // constructor
   val distanceCalc = new DistanceCalc(roadNetwork)
   val indexer = new SpatialIndex(roadNetwork)
 
-  val MEASUREMENT_STD = 4.07
+  val MEASUREMENT_STD = 2.07 // initial 4.07
   val NEIGHBOUR_RADIUS = 100
   val BETA = 0.2
   val DEBUG = false
 
   def getMatchedRoute(rawPoints:Array[Array[Double]]): Array[GeoPoint] = {
-
     val matches = _getBestMatch(points = rawPoints,dCalc = distanceCalc,indexer=indexer)
+    println("Finished 1 route matching")
     return matches
   }
 
@@ -82,8 +82,11 @@ class MapMatch(roadNetwork:Array[Array[Double]]) {
       }
     }
 
-    println("The final scores are: \n" + scores.map(_.mkString(" ")).mkString("\n"))
-    println("The final parents are: \n" + parents.map(_.mkString(" ")).mkString("\n"))
+    if(DEBUG){
+      println("The final scores are: \n" + scores.map(_.mkString(" ")).mkString("\n"))
+      println("The final parents are: \n" + parents.map(_.mkString(" ")).mkString("\n"))
+    }
+
     // construct the most likely path reversely
     var maxEnd = scores(scores.length-1).indexOf(scores(scores.length-1).max)
     val indexList = new Array[Int](points.length)
