@@ -60,7 +60,7 @@ class BaseGraph extends java.io.Serializable {
     
   }
   
-  def ReadInput(roadSegs:Array[Array[Double]]) = {
+  def ReadInput(roadSegs:Array[roadSeg]) = {
     //var in = new Scanner(System.in)
     n = roadSegs.length
 
@@ -68,18 +68,20 @@ class BaseGraph extends java.io.Serializable {
     var j=i
     var k=i
     for(i <- 0 until n){
-      LinkId(i) = roadSegs(i)(4).toLong+""
+      LinkId(i) = roadSegs(i).id
       LinkCat(i) = "Don't Know"
       LaneNum(i) = -1
       ZoneId(i) = i + ""
       RoadName(i) = "Road " + i
       //println(RoadName(i))
       Node(i) = 2
-      for(j <- 0 until Node(i)){
+      Point(i)(0) = roadSegs(i).a
+      Point(i)(1) = roadSegs(i).b
+      /*for(j <- 0 until Node(i)){
         Point(i)(j) = new vector(roadSegs(i)(j*2),roadSegs(i)(j*2+1))
         //Point(i)(j).x = in.nextDouble()
         //Point(i)(j).y = in.nextDouble()
-      }
+      }*/
     }     
   }
 
@@ -283,9 +285,10 @@ class BaseGraph extends java.io.Serializable {
     return a
   }
 
-  val boundfactor = 5.0
+  val boundfactor = 3.0
   val largefactor = 10000.0
   def GraphDistance(a:Int,b:Int):Double = {
+    if(a==b) return 0.0
     var dis = new TreeMap[Int,Double]
     var inq = new TreeMap[Int,Boolean]
     dis.put(a,0.0)
@@ -322,7 +325,14 @@ class BaseGraph extends java.io.Serializable {
   }
   
   def PointGraphDistance(u:Int,ut:Double,v:Int,vt:Double):Double = {
+    
+    if(u==v&&ut<=vt){
+      return (vt-ut)*(length(Point(u)(1)-Point(u)(0)))
+    }
+    //var t = System.nanoTime()
     var ans:Double = GraphDistance(map.get(Point(u)(1)),map.get(Point(v)(0)))
+    //t=System.nanoTime() - t
+    //println(t/1e9)
     var segu = Point(u)(1)-Point(u)(0)
     var segv = Point(v)(1)-Point(v)(0)
     ans+=(1.0-ut)*length(segu)
@@ -342,7 +352,7 @@ class BaseGraph extends java.io.Serializable {
     println("Graph Processing Complete!!")
   }
   
-  def Init(roadSegs:Array[Array[Double]]) = {
+  def Init(roadSegs:Array[roadSeg]) = {
     println("Reading Input from Array...")
     ReadInput(roadSegs)
     println("Readinput Complete!!")
@@ -352,5 +362,14 @@ class BaseGraph extends java.io.Serializable {
     println("Index Complete!!")
     GraphProcessing()
     println("GraphProcessing Complete!!")
+  }
+  
+  def ConvertToArray():Array[roadSeg] = {
+    ReadInputFromFile()
+    var a = new Array[roadSeg](n)
+    for( i <- 0 until n){
+      a(i) = new roadSeg(Point(i)(0),Point(i)(1),LinkId(i))
+    }
+    return a
   }
 }

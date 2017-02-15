@@ -1,4 +1,4 @@
-
+package mapmatch
 import java.io._
 import java.util._
 import scala.math._
@@ -7,7 +7,7 @@ import mapmatch._
 class SeatleGraph extends BaseGraph{
   sourceFile = "e:/HM_MapMatching/road_network.txt"
   override def ReadInputFromFile() = {
-        var in = new Scanner(new File(sourceFile))
+    var in = new Scanner(new File(sourceFile))
     in.nextLine()
     //var in = new Scanner(System.in)
     var s = ""
@@ -19,6 +19,7 @@ class SeatleGraph extends BaseGraph{
     var vertexCnt = 0
     var lineString = ""
     var maxi = 0
+    edgeCnt = 0
     while(in.hasNext()){
       base = in.next()
       node1 = in.next()
@@ -63,4 +64,7 @@ class SeatleGraph extends BaseGraph{
     //println(maxi)
     n=edgeCnt
   }
+  
+  
+  
 }
