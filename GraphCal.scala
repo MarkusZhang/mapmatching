@@ -39,6 +39,7 @@ class GraphCal(var G:BaseGraph) {
     return b
   }
   
+  
   def getDistance(p1:Array[Double],p2:Array[Double]): Double = {
     //TODO: implement
     var p1x = p1(0)-G.lowx
@@ -55,6 +56,10 @@ class GraphCal(var G:BaseGraph) {
   def getShortestRouteDistance(p1:GeoPoint,p2:GeoPoint): Double = {
     //TODO: implement
     return G.NormalToMeter(G.PointGraphDistance(p1.roadSegId,p1.t,p2.roadSegId,p2.t))
+  }
+  
+  def getRouteDetail(p1:GeoPoint,p2:GeoPoint):Array[GeoPoint] = {
+    return G.PointGraphRoute(p1,p2)
   }
   
   

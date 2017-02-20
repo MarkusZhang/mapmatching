@@ -339,6 +339,82 @@ class BaseGraph {
     ans+=vt*length(segv)
     return ans
   }
+    
+    
+  def GraphRoute(a:Int,b:Int):LinkedList[Int] = {
+    if(a==b) {
+      var re = new LinkedList[Int]
+      re.addLast(a)
+      return re
+    }
+    var dis = new TreeMap[Int,Double]
+    var inq = new TreeMap[Int,Boolean]
+    var from =  new TreeMap[Int,Int]
+    dis.put(a,0.0)
+    inq.put(a,true)
+    var bound = boundfactor*length(NodeLoc(b)-NodeLoc(a))
+    dis.put(b,largefactor*divx)
+    inq.put(b,false)
+    var q = new LinkedList[Int]
+    q.addLast(a)
+    while(q.size()>0){
+      var u = q.pollFirst()
+      inq.put(u,false)
+      if(dis.get(u)<=bound){
+        var c = adj(u).iterator()
+        while(c.hasNext()){
+          var v = c.next()
+          var GeoDis = length(NodeLoc(v)-NodeLoc(u))
+        
+          if(!dis.containsKey(v)){
+            dis.put(v,largefactor*divx)
+            inq.put(v,false)
+          }
+          if(dis.get(u)+GeoDis<dis.get(v)){
+            dis.put(v,dis.get(u)+GeoDis)
+            from.put(v,u)
+            if(!inq.get(v)){
+              q.addLast(v)
+              inq.put(v,true)
+            }
+          }
+        }
+      }
+    }
+    var st = b
+    var re = new LinkedList[Int]
+    re.addFirst(b)
+    while(st!=a){
+      st=from.get(st)
+      re.addLast(st)
+    }
+    
+    return re
+  }
+  
+  def PointGraphRoute(p1:GeoPoint,p2:GeoPoint):Array[GeoPoint] = {
+    if(p1.roadSegId==p2.roadSegId){
+      if(p1.t<=p2.t){
+        return Array(p1,p2)
+      }
+    }
+    var a = GraphRoute(map.get(Point(p1.roadSegId)(1)),map.get(Point(p2.roadSegId)(0)))
+    var re = new Array[GeoPoint](a.size()+2)
+    re(0) = p1
+    var pos = 1
+    var c = a.iterator()
+    while(c.hasNext()){
+      var v = c.next()
+      var g = NormalToGeoLoc(NodeLoc(v))
+      re(pos) = new GeoPoint(g.x,g.y,-1,-1,-1)
+      pos=pos+1
+    }
+    re(pos) = p2
+    return re
+    
+  }
+  
+
   
   def Init() = {
     println("Reading Input from File...")

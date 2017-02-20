@@ -27,6 +27,9 @@ class MapMatch_hj(G:BaseGraph) {
         println("point is null")
       }
       candidates(i) = GC.getNeighbours(p(0),p(1),NEIGHBOUR_RADIUS)
+      if(candidates(i).length==0){
+        println("No candidate point find for the point "+i)
+      }
       //println(candidates(i).length)
       
       // initialize parents and scores
@@ -43,7 +46,7 @@ class MapMatch_hj(G:BaseGraph) {
     }
     
     for( i <- 1 until candidates.length){
-      println(GC.getDistance(Points(i-1),Points(i)))
+      //println(GC.getDistance(Points(i-1),Points(i)))
       for(j <- 0 until candidates(i).length){
         scores(i)(j) = -1000000000.0
         for(k <- 0 until candidates(i-1).length){
@@ -75,6 +78,27 @@ class MapMatch_hj(G:BaseGraph) {
     
   }
   
+  def getMatchedRouteDetail(Points:Array[GeoPoint]):Array[GeoPoint] = {
+    var a = new LinkedList[GeoPoint]
+    a.addLast(Points(0))
+    for(i <- 0 until Points.length-1){
+      var b = GC.getRouteDetail(Points(i),Points(i+1))
+      for(j <- 1 until b.length){
+        a.addLast(b(j))
+      }
+    }
+    var re = new Array[GeoPoint](a.size())
+    var pos = 0
+    var c = a.iterator()
+    while(c.hasNext()){
+      var temp = c.next()
+      re(pos) = new GeoPoint(temp.x,temp.y,temp.dist,temp.roadSegId,temp.t)
+      pos=pos+1
+    }
+    return re
+    
+  }
+  
   def _getMeasurementProb(dist:Double): Double={
     val coff = 1 / (sqrt(2 * Pi) * MEASUREMENT_STD)
     val power = -0.5 * pow(dist/MEASUREMENT_STD,2)
@@ -85,10 +109,10 @@ class MapMatch_hj(G:BaseGraph) {
   def _getTransitionProb(candP1:GeoPoint, candP2:GeoPoint, rawP1:Array[Double], rawP2:Array[Double]): Double = {
     // get distance difference
     val rawDist = GC.getDistance(rawP1,rawP2)
-    var t = System.nanoTime()
+    //var t = System.nanoTime()
     val candDist = GC.getShortestRouteDistance(candP1,candP2)
-    t = System.nanoTime()-t
-    println(t/1e9)
+    //t = System.nanoTime()-t
+    //println(t/1e9)
     val diff = abs(rawDist-candDist)
 
     // get probability
