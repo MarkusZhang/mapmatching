@@ -6,7 +6,15 @@ import java.util._
 
 import scala.math._
 
-class Graph {
+class TreeMapComparator extends Comparator[vector] with java.io.Serializable{
+  override def compare(a: vector, b: vector): Int = {
+    if(a.x<b.x||(a.x==b.x&&a.y<b.y)) return -1
+    if(a.x==b.x&&a.y==b.y) return 0
+    return 1
+  }
+}
+
+class Graph extends java.io.Serializable{
     
   val MAXN = 60000
   var LinkId = new Array[Int](MAXN)
@@ -36,13 +44,7 @@ class Graph {
   
   var TotalNode = 0
   var adj = new Array[LinkedList[Int]](MAXN)
-  var map = new TreeMap[vector,Int](new Comparator[vector](){
-    def compare(a:vector,b:vector):Int = {
-      if(a.x<b.x||(a.x==b.x&&a.y<b.y)) return -1
-      if(a.x==b.x&&a.y==b.y) return 0
-      return 1
-    }
-  })
+  var map = new TreeMap[vector,Int](new TreeMapComparator)
   var NodeLoc = new Array[vector](MAXN)
   
   var i = 0

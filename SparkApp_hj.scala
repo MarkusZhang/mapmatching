@@ -39,12 +39,12 @@ object SparkApp_hj {
     
     var rawPoints = new Array[Array[Double]](2)
     rawPoints(0) = new Array[Double](2)
-    rawPoints(0)(0)= 103.74186
-    rawPoints(0)(1) = 1.38629
+    rawPoints(0)(0)= 103.765026
+    rawPoints(0)(1) = 1.315564
     
     rawPoints(1) = new Array[Double](2)
-    rawPoints(1)(0) = 103.7451
-    rawPoints(1)(1) = 1.33926
+    rawPoints(1)(0) = 103.777761
+    rawPoints(1)(1) = 1.300560
     
     /*var a = matcher.GC.getNeighbours(rawPoints(1)(0), rawPoints(1)(1), 100)
     
@@ -53,7 +53,7 @@ object SparkApp_hj {
       println(a(i).x+"\t"+a(i).y+"\t"+1)
     }*/
     
-    /*var re = matcher.getMatchedRoute(rawPoints)
+    var re = matcher.getMatchedRoute(rawPoints)
     
     println(re(0).x+"\t"+re(0).y+"\t"+0)
     println(re(1).x+"\t"+re(1).y+"\t"+0)
@@ -61,7 +61,7 @@ object SparkApp_hj {
     var a = matcher.getMatchedRouteDetail(re)
     for(i <- 0 until a.length){
       println(a(i).x+"\t"+a(i).y+"\t"+1)
-    }*/
+    }
     
   }
   

@@ -1,6 +1,6 @@
 package mapmatch
 
-class DistanceCalc(roadSegs:Array[Array[Double]]) {
+class DistanceCalc(roadSegs:Array[Array[Double]]) extends java.io.Serializable{
   /**
    * roadSegs will be something like
    * [

@@ -9,6 +9,10 @@ import org.apache.spark.SparkConf
 
 object SparkApp {
 
+  val SPARK_URL = "spark://155.69.148.21:7078"
+  val SOURCE_FILE = "hdfs://155.69.148.21:9002/users/staff/tongpr/taxi_data.csv"
+  val RESULT_FILE = "hdfs://155.69.148.21:9002/users/staff/tongpr/mapmatch_result"
+
   def arrToArrOfArr(arr: Array[Double]): Array[Array[Double]] = {
     var result = new Array[Array[Double]](arr.length / 2)
     for (i <- arr.indices){
@@ -29,28 +33,36 @@ object SparkApp {
   }
 
   def getMapMatcher:MapMatch = {
-    val ois = new ObjectInputStream(new FileInputStream("D:/fyp/LTA_serialized.txt"))
+    val ois = new ObjectInputStream(new FileInputStream("/users/staff/tongpr/LTA_serialized.txt"))
     val roadNetwork = ois.readObject.asInstanceOf[Array[Array[Double]]]
     ois.close()
     return new MapMatch(roadNetwork)
   }
 
-  def main(args: Array[String]) {
-    val conf = new SparkConf().setAppName("Simple Application").setMaster("local[*]")
-    val sc = new SparkContext(conf)
+  def startMapMatching(sc:SparkContext): Unit ={
+    val matcher = getMapMatcher
     // preprocess data
-    val file = sc.textFile("D:/fyp/raw_data/SG_origindata/OriginTaxiData_20150701.csv")
+    val file = sc.textFile(SOURCE_FILE)
+
     val processedData = file.map(line=>line.split(","))
       .map(x=>(x(0),Array(x(1).toDouble,x(2).toDouble)))
       .reduceByKey(_ ++ _) //TODO: can we reduce to an array of array
-      .map(x=>(x._1,arrToArrOfArr(x._2))) // convert each list to array of (lng,lat) pairs
-      .take(10)
+      .map(x=>(x._1,matcher.getMatchedRoute(arrToArrOfArr(x._2))))
+        .saveAsTextFile(RESULT_FILE)// convert each list to array of (lng,lat) pairs
     // do matching
-    val matcher = getMapMatcher
-    //val nullList = processedData.filter(x=>checkContainNull(x._2))
-    val matches = processedData
-      .map(x=>(x._1,matcher.getMatchedRoute(x._2)))
-      .take(10)
-    matches.foreach(println)
+    println("Finished preprocessing")
+//    val matches = processedData
+//      .map(x=>(x._1,matcher.getMatchedRoute(x._2)))
+//      .reduceByKey(_ ++ _)
+//      .saveAsTextFile(RESULT_FILE)
+  }
+
+
+  def main(args: Array[String]) {
+    //System.setProperty("hadoop.home.dir", "C:/hadoop")
+    val conf = new SparkConf().setAppName("Mapmatch")//.setMaster(SPARK_URL)
+    val sc = new SparkContext(conf)
+    startMapMatching(sc)
+    sc.stop()
   }
 }
