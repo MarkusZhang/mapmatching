@@ -47,15 +47,18 @@ class SeatleGraph extends BaseGraph{
         Node(edgeCnt) = 2
         ss = new Scanner(P(i))
         var en = new vector(ss.nextDouble(),ss.nextDouble())
-        Point(edgeCnt)(0)=new vector(pre.x,pre.y)
-        Point(edgeCnt)(1)=new vector(en.x,en.y)
-        pre=en
-        //println(pre)
-        edgeCnt = edgeCnt+1
-        if(twoway>0){
-          Point(edgeCnt)(0) = new vector(en.x,en.y)
-          Point(edgeCnt)(1) = new vector(pre.x,pre.y)
-          edgeCnt=edgeCnt+1
+        if(length(en-pre)!=0){
+          Point(edgeCnt)(0)=new vector(pre.x,pre.y)
+          Point(edgeCnt)(1)=new vector(en.x,en.y)
+          //println(pre)
+          edgeCnt = edgeCnt+1
+          if(twoway>0){
+            Point(edgeCnt)(0) = new vector(en.x,en.y)
+            Point(edgeCnt)(1) = new vector(pre.x,pre.y)
+            edgeCnt=edgeCnt+1
+          }
+          pre.x=en.x
+          pre.y=en.y 
         }
       }
       //println(s)

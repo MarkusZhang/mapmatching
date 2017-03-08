@@ -8,7 +8,8 @@ import java.io._
 
 object SparkApp_hj {
   def getMatcher:MapMatch_hj = {
-    var temp = new SingaporeGraph
+    //var temp = new SingaporeGraph
+    var temp = new SeatleGraph
     temp.Init()
     
     val matcher = new MapMatch_hj(temp)
@@ -18,8 +19,8 @@ object SparkApp_hj {
   
   def getMatcherBySerialized:MapMatch_hj = {
     var temp = new BaseGraph
-    //val ois = new ObjectInputStream(new FileInputStream("e:/HM_MapMatching/road_network_serialized.txt"))
-    val ois = new ObjectInputStream(new FileInputStream("e:/taxi/LTA_serialized.txt"))
+    val ois = new ObjectInputStream(new FileInputStream("e:/HM_MapMatching/road_network_serialized.txt"))
+    //val ois = new ObjectInputStream(new FileInputStream("e:/taxi/LTA_serialized.txt"))
     
     val roadNetwork = ois.readObject.asInstanceOf[Array[roadSeg]]
     ois.close()
@@ -35,25 +36,93 @@ object SparkApp_hj {
     val conf = new SparkConf().setAppName("Simple Application").setMaster("local[*]")
     val sc = new SparkContext(conf)
 
-    val matcher = getMatcherBySerialized
+    //val matcher = getMatcherBySerialized
     
+    /*var pw = new PrintWriter(new File("e:/HM_MapMatching/Gapped_Point.txt" ))
+
+    
+    var datafile = "e:/HM_MapMatching/gps_data.txt"
+    
+    var in = new Scanner(new File(datafile));
+    in.nextLine()
+    var p = 0
+    var sz:Int = 3500
+    //println(sz)
+    var rawPoints = new Array[Array[Double]](sz)
+    
+    for(i<- 0 until sz){
+      in.next()
+      in.next()
+      rawPoints(p) = new Array[Double](2)
+      rawPoints(p)(1) = in.nextDouble()
+      rawPoints(p)(0) = in.nextDouble()
+      p=p+1
+      
+    }
+    
+    
+    var gap = 10
+    
+    var sz2:Int = sz/gap.toInt
+    var rawPoints2 = new Array[Array[Double]](sz2)
+    for(i<- 0 until sz2){
+      rawPoints2(i) = rawPoints(i*gap)
+    }
+    
+    for(i <- 0 until sz2){
+      pw.write(rawPoints2(i)(1)+","+rawPoints2(i)(0)+"\r\n")
+
+    }
+    pw.close
+
+    
+    
+    val matcher = getMatcher
+    var re = matcher.getMatchedRoute(rawPoints2)
+    println("Matched Route Found!")
+    
+    pw = new PrintWriter(new File("e:/HM_MapMatching/result.txt"))
+
+    for(i <- 0 until re.length){
+      if(i>0) println(matcher.GC.getShortestRouteDistance(re(i-1),re(i)))
+      println(i+" "+re(i))
+      pw.write(re(i).y+","+re(i).x+"\r\n")
+    }
+    
+    pw.close
+
+    var a = matcher.getMatchedRouteDetail(re)
+    println("Matched Route Detail Found!")
+		
+    pw = new PrintWriter(new File("e:/HM_MapMatching/RouteDetail.txt"))
+    for(i <- 0 until a.length){
+      pw.write(a(i).y+","+a(i).x+"\r\n")
+    }
+    pw.close
+    */
+    
+    
+    var matcher = getMatcher
     var rawPoints = new Array[Array[Double]](2)
     rawPoints(0) = new Array[Double](2)
-    rawPoints(0)(0)= 103.765026
-    rawPoints(0)(1) = 1.315564
+    rawPoints(0)(0)= -122.317833
+    rawPoints(0)(1) = 47.62205
     
     rawPoints(1) = new Array[Double](2)
-    rawPoints(1)(0) = 103.777761
-    rawPoints(1)(1) = 1.300560
+    rawPoints(1)(0) = -122.317833
+    rawPoints(1)(1) = 47.6217833
     
-    /*var a = matcher.GC.getNeighbours(rawPoints(1)(0), rawPoints(1)(1), 100)
+    var a = matcher.GC.getNeighbours(rawPoints(0)(0), rawPoints(0)(1), 100)
     
     pr(rawPoints(1)(0),rawPoints(1)(1),0)
     for(i <- 0 until a.length){
-      println(a(i).x+"\t"+a(i).y+"\t"+1)
-    }*/
+      println(a(i))
+    }
     
-    var re = matcher.getMatchedRoute(rawPoints)
+    //To Do:   This Point dont match to the Point that goes follow the direction of raw data. 
+    //         try Find the reason
+    
+    /*var re = matcher.getMatchedRoute(rawPoints)
     
     println(re(0).x+"\t"+re(0).y+"\t"+0)
     println(re(1).x+"\t"+re(1).y+"\t"+0)
@@ -62,7 +131,9 @@ object SparkApp_hj {
     for(i <- 0 until a.length){
       println(a(i).x+"\t"+a(i).y+"\t"+1)
     }
+    */
     
+
   }
   
   def pr(a:Double,b:Double,t:Int):Unit = println(a+"\t"+b+"\t"+t) 

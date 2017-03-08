@@ -26,6 +26,7 @@ class MapMatch_hj(G:BaseGraph) {
         println("======================================")
         println("point is null")
       }
+      //println(i)
       candidates(i) = GC.getNeighbours(p(0),p(1),NEIGHBOUR_RADIUS)
       if(candidates(i).length==0){
         println("No candidate point find for the point "+i)
@@ -46,6 +47,7 @@ class MapMatch_hj(G:BaseGraph) {
     }
     
     for( i <- 1 until candidates.length){
+      println("Finding Route At Point "+i)
       //println(GC.getDistance(Points(i-1),Points(i)))
       for(j <- 0 until candidates(i).length){
         scores(i)(j) = -1000000000.0
@@ -82,6 +84,8 @@ class MapMatch_hj(G:BaseGraph) {
     var a = new LinkedList[GeoPoint]
     a.addLast(Points(0))
     for(i <- 0 until Points.length-1){
+      println("Processing Matched Route Detail At Point "+i)
+      println(GC.getShortestRouteDistance(Points(i),Points(i+1)))
       var b = GC.getRouteDetail(Points(i),Points(i+1))
       for(j <- 1 until b.length){
         a.addLast(b(j))

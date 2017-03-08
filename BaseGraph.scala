@@ -279,14 +279,15 @@ class BaseGraph extends java.io.Serializable {
       var re = getDistanceToSegment(new vector(x,y),Point(p)(0),Point(p)(1))
       var pro = Point(p)(0)+((Point(p)(1)-Point(p)(0))*re.t)
       a(pos) = new GeoPoint(pro.x,pro.y,re.dis,p,re.t)
+      //println(a(pos).dist)
       pos=pos+1
     }
-    a=a.sortWith(_<_)
-    return a
+    var temp = a.sortWith(_ < _)
+    return temp
   }
 
   val boundfactor = 3.0
-  val largefactor = 10000.0
+  val largefactor = 1000.0
   def GraphDistance(a:Int,b:Int):Double = {
     if(a==b) return 0.0
     var dis = new TreeMap[Int,Double]
@@ -384,9 +385,15 @@ class BaseGraph extends java.io.Serializable {
     var st = b
     var re = new LinkedList[Int]
     re.addFirst(b)
+    if(!from.containsKey(b)){
+      println("!")
+      re.addFirst(a)
+      return re
+    }
     while(st!=a){
       st=from.get(st)
-      re.addLast(st)
+      re.addFirst(st)
+      //println("!"+st+" "+a)
     }
     
     return re

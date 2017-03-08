@@ -43,7 +43,9 @@ class GraphCal(var G:BaseGraph) {
   def getDistance(p1:Array[Double],p2:Array[Double]): Double = {
     //TODO: implement
     var p1x = p1(0)-G.lowx
+    p1x*=G.LongitudeNormalizeFactor
     var p2x = p2(0)-G.lowx
+    p2x*=G.LongitudeNormalizeFactor
     var p1y = p1(1)-G.lowy
     var p2y = p2(1)-G.lowy
     var u = new vector(p1x,p1y)
