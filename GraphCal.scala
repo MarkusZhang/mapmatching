@@ -56,7 +56,6 @@ class GraphCal(var G:BaseGraph) {
    * return the length of the shortest path from p1 to p2 along roads
    */
   def getShortestRouteDistance(p1:GeoPoint,p2:GeoPoint): Double = {
-    //TODO: implement
     return G.NormalToMeter(G.PointGraphDistance(p1.roadSegId,p1.t,p2.roadSegId,p2.t))
   }
   

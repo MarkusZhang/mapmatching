@@ -5,9 +5,9 @@ import java.util._
 import scala.math._
 
 
-object SeatleMapSerializer {
+object SeattleMapSerializer {
   def main(args:Array[String]) = {
-    var G = new SeatleGraph
+    var G = new SeattleGraph
     G.sourceFile = "e:/HM_MapMatching/road_network.txt"
     println("Converting to Array...")
     var arr = G.ConvertToArray()

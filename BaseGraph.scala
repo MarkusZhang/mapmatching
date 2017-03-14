@@ -126,6 +126,7 @@ class BaseGraph extends java.io.Serializable {
   def length(a:vector):Double = sqrt(dot(a,a))
   def NormalToMeter(a:Double):Double = a*wd*MeterPerDegree
   def NormalToGeoLoc(a:vector):vector = new vector(a.x*wd/LongitudeNormalizeFactor+lowx,a.y*wd+lowy)
+  def GeoLocToNormal(a:vector):vector = new vector((a.x-lowx)*LongitudeNormalizeFactor/wd,(a.y-lowy)/wd)
 
   def getDistanceToLine(p:vector,a:vector,b:vector):Double = {
     var v1 = b-a
@@ -287,7 +288,13 @@ class BaseGraph extends java.io.Serializable {
   }
 
   val boundfactor = 3.0
-  val largefactor = 1000.0
+  val largefactor = 100.0
+  
+  def InEllipse(a:vector,b:vector,c:vector):Boolean = {
+    var dis = length(c-a)+length(c-b)
+    return dis<=boundfactor*length(b-a)
+  }
+  
   def GraphDistance(a:Int,b:Int):Double = {
     if(a==b) return 0.0
     var dis = new TreeMap[Int,Double]
@@ -302,7 +309,7 @@ class BaseGraph extends java.io.Serializable {
     while(q.size()>0){
       var u = q.pollFirst()
       inq.put(u,false)
-      if(dis.get(u)<=bound){
+      if(InEllipse(NodeLoc(a),NodeLoc(b),NodeLoc(u))){
         var c = adj(u).iterator()
         while(c.hasNext()){
           var v = c.next()
@@ -361,7 +368,7 @@ class BaseGraph extends java.io.Serializable {
     while(q.size()>0){
       var u = q.pollFirst()
       inq.put(u,false)
-      if(dis.get(u)<=bound){
+      if(InEllipse(NodeLoc(a),NodeLoc(b),NodeLoc(u))){
         var c = adj(u).iterator()
         while(c.hasNext()){
           var v = c.next()

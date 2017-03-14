@@ -8,7 +8,7 @@ class MapMatch_hj(G:BaseGraph) {
   
   val MEASUREMENT_STD = 4.07
   val NEIGHBOUR_RADIUS = 100
-  val BETA = 0.2
+  var BETA = 0.2
   
   def getMatchedRoute(rawPoints:Array[Array[Double]]): Array[GeoPoint] = {
 
@@ -50,9 +50,9 @@ class MapMatch_hj(G:BaseGraph) {
       println("Finding Route At Point "+i)
       //println(GC.getDistance(Points(i-1),Points(i)))
       for(j <- 0 until candidates(i).length){
-        scores(i)(j) = -1000000000.0
+        scores(i)(j) = -1000000000000.0
         for(k <- 0 until candidates(i-1).length){
-          var ts = scores(i-1)(k) + _getTransitionProb(candidates(i)(j),candidates(i-1)(k),Points(i),Points(i-1));
+          var ts = scores(i-1)(k) + _getTransitionProb(candidates(i-1)(k),candidates(i)(j),Points(i-1),Points(i));
           if(scores(i)(j)<ts){
             scores(i)(j)=ts
             parents(i)(j)=k
@@ -102,6 +102,8 @@ class MapMatch_hj(G:BaseGraph) {
     return re
     
   }
+  
+
   
   def _getMeasurementProb(dist:Double): Double={
     val coff = 1 / (sqrt(2 * Pi) * MEASUREMENT_STD)

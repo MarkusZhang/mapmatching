@@ -5,11 +5,12 @@ import org.apache.spark.SparkContext._
 import org.apache.spark.SparkConf
 import mapmatch._
 import java.io._
+import scala.math._
 
 object SparkApp_hj {
   def getMatcher:MapMatch_hj = {
     //var temp = new SingaporeGraph
-    var temp = new SeatleGraph
+    var temp = new SeattleGraph
     temp.Init()
     
     val matcher = new MapMatch_hj(temp)
@@ -38,7 +39,7 @@ object SparkApp_hj {
 
     //val matcher = getMatcherBySerialized
     
-    /*var pw = new PrintWriter(new File("e:/HM_MapMatching/Gapped_Point.txt" ))
+    var pw = new PrintWriter(new File("e:/HM_MapMatching/Gapped_Point.txt" ))
 
     
     var datafile = "e:/HM_MapMatching/gps_data.txt"
@@ -46,7 +47,8 @@ object SparkApp_hj {
     var in = new Scanner(new File(datafile));
     in.nextLine()
     var p = 0
-    var sz:Int = 3500
+    //total num is 7531
+    var sz:Int = 7531
     //println(sz)
     var rawPoints = new Array[Array[Double]](sz)
     
@@ -61,7 +63,7 @@ object SparkApp_hj {
     }
     
     
-    var gap = 10
+    var gap = 20
     
     var sz2:Int = sz/gap.toInt
     var rawPoints2 = new Array[Array[Double]](sz2)
@@ -78,6 +80,7 @@ object SparkApp_hj {
     
     
     val matcher = getMatcher
+    matcher.BETA = 1.0*gap/log(2.0)*8*(1.0-sqrt(2)/2.0)/2.0
     var re = matcher.getMatchedRoute(rawPoints2)
     println("Matched Route Found!")
     
@@ -99,28 +102,39 @@ object SparkApp_hj {
       pw.write(a(i).y+","+a(i).x+"\r\n")
     }
     pw.close
-    */
     
+    //TODO: preprocess the raw data
     
+    //47.66965,-122.1051667
+    //47.67098333,-122.1066
+    
+    /*
     var matcher = getMatcher
     var rawPoints = new Array[Array[Double]](2)
     rawPoints(0) = new Array[Double](2)
-    rawPoints(0)(0)= -122.317833
-    rawPoints(0)(1) = 47.62205
+    rawPoints(0)(0)= -122.1051667
+    rawPoints(0)(1) = 47.66965
     
     rawPoints(1) = new Array[Double](2)
-    rawPoints(1)(0) = -122.317833
-    rawPoints(1)(1) = 47.6217833
+    rawPoints(1)(0) = -122.1066
+    rawPoints(1)(1) = 47.67098333
     
-    var a = matcher.GC.getNeighbours(rawPoints(0)(0), rawPoints(0)(1), 100)
+    var a = matcher.GC.getNeighbours(rawPoints(1)(0), rawPoints(1)(1), 100)
     
     pr(rawPoints(1)(0),rawPoints(1)(1),0)
     for(i <- 0 until a.length){
       println(a(i))
     }
     
-    //To Do:   This Point dont match to the Point that goes follow the direction of raw data. 
-    //         try Find the reason
+    var sp = a(0)
+    println(sp)
+    
+    println(matcher.GC.G.LinkId(sp.roadSegId))
+    
+    println(matcher.GC.G.NormalToGeoLoc(matcher.GC.G.Point(sp.roadSegId)(0)))
+    println(matcher.GC.G.NormalToGeoLoc(matcher.GC.G.Point(sp.roadSegId)(1)))
+    */
+    
     
     /*var re = matcher.getMatchedRoute(rawPoints)
     
