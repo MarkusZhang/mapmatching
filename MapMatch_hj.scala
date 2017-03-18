@@ -6,8 +6,8 @@ import scala.math._
 class MapMatch_hj(G:BaseGraph) {
   val GC = new GraphCal(G)
   
-  val MEASUREMENT_STD = 4.07
-  val NEIGHBOUR_RADIUS = 100
+  var MEASUREMENT_STD = 4.07
+  var NEIGHBOUR_RADIUS = 100
   var BETA = 0.2
   
   def getMatchedRoute(rawPoints:Array[Array[Double]]): Array[GeoPoint] = {
@@ -26,24 +26,18 @@ class MapMatch_hj(G:BaseGraph) {
         println("======================================")
         println("point is null")
       }
-      //println(i)
       candidates(i) = GC.getNeighbours(p(0),p(1),NEIGHBOUR_RADIUS)
       if(candidates(i).length==0){
         println("No candidate point find for the point "+i)
-      }
-      //println(candidates(i).length)
-      
+      }      
       // initialize parents and scores
       parents(i) = new Array[Int](candidates(i).length)
       scores(i) = new Array[Double](candidates(i).length)
     }
-    
-    //scores(0) = candidates(0).map(x=>_getMeasurementProb(x.dist))
-        
+            
     for(i <- 0 until scores(0).length){
       scores(0)(i) = _getMeasurementProb(candidates(0)(i).dist)
       parents(0)(i) = -1
-      //println(candidates(0)(i))
     }
     
     for( i <- 1 until candidates.length){
@@ -70,14 +64,11 @@ class MapMatch_hj(G:BaseGraph) {
       index(Points.length-i) = p
       p=parents(Points.length-i)(p)
     }
-    
     var result = new Array[GeoPoint](Points.length)
     for(i <- 0 until Points.length){
       result(i) = candidates(i)(index(i))
     }
-    
     return result
-    
   }
   
   def getMatchedRouteDetail(Points:Array[GeoPoint]):Array[GeoPoint] = {
@@ -100,7 +91,6 @@ class MapMatch_hj(G:BaseGraph) {
       pos=pos+1
     }
     return re
-    
   }
   
 
@@ -125,4 +115,20 @@ class MapMatch_hj(G:BaseGraph) {
     //return 1.0 / BETA * exp(-diff/BETA)
     return log(1.0/BETA) + (-diff/BETA)
   }
+  
+  def GenerateNoise(t:Double):vector = {
+    val r = scala.util.Random
+    var l = r.nextGaussian()
+    if(l<0.0) l=0.0-l
+    l*=t
+    var th = r.nextDouble()
+    th*=2*Pi
+    var x = l*sin(th)
+    var y = l*cos(th)
+    y/=GC.G.MeterPerDegree
+    x/=GC.G.MeterPerDegree
+    x/=GC.G.LongitudeNormalizeFactor
+    return new vector(x,y)
+  }
+  
 }

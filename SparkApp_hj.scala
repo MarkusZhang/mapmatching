@@ -48,7 +48,7 @@ object SparkApp_hj {
     in.nextLine()
     var p = 0
     //total num is 7531
-    var sz:Int = 7531
+    var sz:Int = 1000
     //println(sz)
     var rawPoints = new Array[Array[Double]](sz)
     
@@ -61,26 +61,30 @@ object SparkApp_hj {
       p=p+1
       
     }
-    
-    
+   
+    var noise = 0.0
     var gap = 20
     
-    var sz2:Int = sz/gap.toInt
-    var rawPoints2 = new Array[Array[Double]](sz2)
-    for(i<- 0 until sz2){
-      rawPoints2(i) = rawPoints(i*gap)
-    }
-    
-    for(i <- 0 until sz2){
-      pw.write(rawPoints2(i)(1)+","+rawPoints2(i)(0)+"\r\n")
 
-    }
-    pw.close
 
     
     
     val matcher = getMatcher
+    
+    matcher.MEASUREMENT_STD = 4.07+noise
     matcher.BETA = 1.0*gap/log(2.0)*8*(1.0-sqrt(2)/2.0)/2.0
+    matcher.NEIGHBOUR_RADIUS=5*(matcher.MEASUREMENT_STD.toInt+1)
+    
+    rawPoints = AddNoise(matcher,noise,rawPoints)
+    
+    var rawPoints2 = SampleRateFilter(rawPoints,gap)
+    
+    for(i <- 0 until rawPoints2.length){
+      pw.write(rawPoints2(i)(1)+","+rawPoints2(i)(0)+"\r\n")
+
+    }
+    pw.close
+    
     var re = matcher.getMatchedRoute(rawPoints2)
     println("Matched Route Found!")
     
@@ -88,7 +92,7 @@ object SparkApp_hj {
 
     for(i <- 0 until re.length){
       if(i>0) println(matcher.GC.getShortestRouteDistance(re(i-1),re(i)))
-      println(i+" "+re(i))
+      println(i+" "+re(i)+" LinkId:"+matcher.GC.G.LinkId(re(i).roadSegId))
       pw.write(re(i).y+","+re(i).x+"\r\n")
     }
     
@@ -103,7 +107,9 @@ object SparkApp_hj {
     }
     pw.close
     
-    //TODO: preprocess the raw data
+    //884147800805
+    
+    //TODO: preprocess the raw data. Noise Generating Function
     
     //47.66965,-122.1051667
     //47.67098333,-122.1066
@@ -148,6 +154,25 @@ object SparkApp_hj {
     */
     
 
+  }
+  
+  def SampleRateFilter(rawPoints:Array[Array[Double]],gap:Int):Array[Array[Double]] = {
+    var sz = rawPoints.length
+    var sz2 = (sz/gap).toInt
+    var re = new Array[Array[Double]](sz2)
+    for(i <- 0 until sz2){
+      re(i) = rawPoints(i*gap)
+    }
+    return re
+  }
+  
+  def AddNoise(matcher:MapMatch_hj,t:Double,rawPoints:Array[Array[Double]]):Array[Array[Double]]={
+    for(i <- 0 until rawPoints.length){
+      var a = matcher.GenerateNoise(t)
+      rawPoints(i)(0)+=a.x
+      rawPoints(i)(1)+=a.y
+    }
+    return rawPoints
   }
   
   def pr(a:Double,b:Double,t:Int):Unit = println(a+"\t"+b+"\t"+t) 

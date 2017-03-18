@@ -114,11 +114,7 @@ class BaseGraph extends java.io.Serializable {
       Point(i)(j).x/=wd
       Point(i)(j).y/=wd
       //println(Point(i)(j))
-      //println(i+" "+j)
     }
-    /*for(i <- 0 until n){
-      println(Point(i)(0))
-    }*/
   }
   
   def cross(a:vector,b:vector):Double = a.x*b.y-a.y*b.x
@@ -134,6 +130,7 @@ class BaseGraph extends java.io.Serializable {
     return abs(cross(v1,v2))/length(v1)
   }
   class pairDD(var dis:Double,var t:Double)
+  class pairII(var a:Int,var b:Int)
   def getDistanceToSegment(p:vector,a:vector,b:vector):pairDD = {
     var v1 = b-a
     var v2 = p-a
@@ -224,12 +221,9 @@ class BaseGraph extends java.io.Serializable {
       var v = map.get(Point(i)(1))
       
       if(u==null||v==null) println("Invalid Point Detected!")
-      
-      //println(u+" "+v)
       adj(u).addLast(v)
     }
     TotalNode = cnt
-    //println(cnt)
   }
   
   def bruteforceQuery(a:Double,b:Double):Double = {
@@ -301,7 +295,6 @@ class BaseGraph extends java.io.Serializable {
     var inq = new TreeMap[Int,Boolean]
     dis.put(a,0.0)
     inq.put(a,true)
-    var bound = boundfactor*length(NodeLoc(b)-NodeLoc(a))
     dis.put(b,largefactor*divx)
     inq.put(b,false)
     var q = new LinkedList[Int]
@@ -333,14 +326,10 @@ class BaseGraph extends java.io.Serializable {
   }
   
   def PointGraphDistance(u:Int,ut:Double,v:Int,vt:Double):Double = {
-    
     if(u==v&&ut<=vt){
       return (vt-ut)*(length(Point(u)(1)-Point(u)(0)))
     }
-    //var t = System.nanoTime()
     var ans:Double = GraphDistance(map.get(Point(u)(1)),map.get(Point(v)(0)))
-    //t=System.nanoTime() - t
-    //println(t/1e9)
     var segu = Point(u)(1)-Point(u)(0)
     var segv = Point(v)(1)-Point(v)(0)
     ans+=(1.0-ut)*length(segu)
