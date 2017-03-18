@@ -48,7 +48,7 @@ object SparkApp_hj {
     in.nextLine()
     var p = 0
     //total num is 7531
-    var sz:Int = 1000
+    var sz:Int = 7531
     //println(sz)
     var rawPoints = new Array[Array[Double]](sz)
     
@@ -61,9 +61,25 @@ object SparkApp_hj {
       p=p+1
       
     }
+    
+    in = new Scanner(new File("E:/HM_MapMatching/ground_truth_route.txt"))
+    in.nextLine()
+    var szgt = 0
+    var GT = new LinkedList[String]
+    while(in.hasNext()){
+      var a = in.next()
+      var b = in.nextInt()
+      if(b==1){
+        a=a+"+"
+      }else{
+        a=a+"-"
+      }
+      GT.addLast(a)
+    }
+    var GroundTruth = ConvertToArray(GT)
    
     var noise = 0.0
-    var gap = 20
+    var gap = 10
     
 
 
@@ -73,7 +89,7 @@ object SparkApp_hj {
     
     matcher.MEASUREMENT_STD = 4.07+noise
     matcher.BETA = 1.0*gap/log(2.0)*8*(1.0-sqrt(2)/2.0)/2.0
-    matcher.NEIGHBOUR_RADIUS=5*(matcher.MEASUREMENT_STD.toInt+1)
+    matcher.NEIGHBOUR_RADIUS=10*(matcher.MEASUREMENT_STD.toInt+1)
     
     rawPoints = AddNoise(matcher,noise,rawPoints)
     
@@ -102,10 +118,35 @@ object SparkApp_hj {
     println("Matched Route Detail Found!")
 		
     pw = new PrintWriter(new File("e:/HM_MapMatching/RouteDetail.txt"))
+    var RP = new LinkedList[String]
+    var end = "-1"
     for(i <- 0 until a.length){
       pw.write(a(i).y+","+a(i).x+"\r\n")
+      
+      var t = matcher.GC.G.LinkId(a(i).roadSegId)
+      if(t.last=='-'){
+        t=t.substring(0,t.length()-4)
+        t=t+"-"
+      }else{
+        t=t.substring(0,t.length()-3)
+        t=t+"+"
+      }
+      if(t!=end){
+        RP.addLast(t)
+        end=t
+      }
     }
     pw.close
+    
+    var ResultPath = ConvertToArray(RP)
+
+    
+    var LCSCal = new LCS
+    var lcs = LCSCal.getResult(GroundTruth,ResultPath)
+    println(GroundTruth.length)
+    println(ResultPath.length)
+    println(1.0-1.0*(GroundTruth.length+ResultPath.length-2*lcs)/GroundTruth.length)
+    
     
     //884147800805
     
@@ -174,6 +215,19 @@ object SparkApp_hj {
     }
     return rawPoints
   }
+  
+  def ConvertToArray(a:LinkedList[String]):Array[String]={
+    var re = new Array[String](a.size)
+    var p = 0
+    var c = a.iterator()
+    while(c.hasNext()){
+      re(p)=c.next()
+      p=p+1
+    }
+    return re
+    
+  }
+
   
   def pr(a:Double,b:Double,t:Int):Unit = println(a+"\t"+b+"\t"+t) 
 }

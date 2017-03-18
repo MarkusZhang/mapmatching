@@ -64,7 +64,6 @@ class SeattleGraph extends BaseGraph{
             edgeCnt=edgeCnt+1
           }
           pre = new vector(en.x,en.y)
-
         }
       }
       //println(s)

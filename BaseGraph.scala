@@ -45,7 +45,7 @@ class BaseGraph extends java.io.Serializable {
   var LongitudeNormalizeFactor = 0.0
   
   var TotalNode = 0
-  var adj = new Array[LinkedList[Int]](MAXN)
+  var adj = new Array[LinkedList[pairII]](MAXN)
   var map = new TreeMap[vector,Int](new Comparator[vector](){
     def compare(a:vector,b:vector):Int = {
       if(a.x<b.x||(a.x==b.x&&a.y<b.y)) return -1
@@ -204,7 +204,7 @@ class BaseGraph extends java.io.Serializable {
     TotalNode = 0
     var cnt = 0
     for(i <- 0 until MAXN){
-      adj(i) = new LinkedList[Int]
+      adj(i) = new LinkedList[pairII]
     }
     for(i <- 0 until n){
       if(!map.containsKey(Point(i)(0))){
@@ -221,7 +221,7 @@ class BaseGraph extends java.io.Serializable {
       var v = map.get(Point(i)(1))
       
       if(u==null||v==null) println("Invalid Point Detected!")
-      adj(u).addLast(v)
+      adj(u).addLast(new pairII(v,i))
     }
     TotalNode = cnt
   }
@@ -305,7 +305,8 @@ class BaseGraph extends java.io.Serializable {
       if(InEllipse(NodeLoc(a),NodeLoc(b),NodeLoc(u))){
         var c = adj(u).iterator()
         while(c.hasNext()){
-          var v = c.next()
+          var vp = c.next()
+          var v = vp.a
           var GeoDis = length(NodeLoc(v)-NodeLoc(u))
         
           if(!dis.containsKey(v)){
@@ -338,15 +339,15 @@ class BaseGraph extends java.io.Serializable {
   }
     
     
-  def GraphRoute(a:Int,b:Int):LinkedList[Int] = {
+  def GraphRoute(a:Int,b:Int):LinkedList[pairII] = {
     if(a==b) {
-      var re = new LinkedList[Int]
-      re.addLast(a)
+      var re = new LinkedList[pairII]
+      //re.addLast(a)
       return re
     }
     var dis = new TreeMap[Int,Double]
     var inq = new TreeMap[Int,Boolean]
-    var from =  new TreeMap[Int,Int]
+    var from =  new TreeMap[Int,pairII]
     dis.put(a,0.0)
     inq.put(a,true)
     var bound = boundfactor*length(NodeLoc(b)-NodeLoc(a))
@@ -360,7 +361,8 @@ class BaseGraph extends java.io.Serializable {
       if(InEllipse(NodeLoc(a),NodeLoc(b),NodeLoc(u))){
         var c = adj(u).iterator()
         while(c.hasNext()){
-          var v = c.next()
+          var vp = c.next()
+          var v = vp.a
           var GeoDis = length(NodeLoc(v)-NodeLoc(u))
         
           if(!dis.containsKey(v)){
@@ -369,7 +371,7 @@ class BaseGraph extends java.io.Serializable {
           }
           if(dis.get(u)+GeoDis<dis.get(v)){
             dis.put(v,dis.get(u)+GeoDis)
-            from.put(v,u)
+            from.put(v,new pairII(u,vp.b))
             if(!inq.get(v)){
               q.addLast(v)
               inq.put(v,true)
@@ -378,16 +380,14 @@ class BaseGraph extends java.io.Serializable {
         }
       }
     }
-    var st = b
-    var re = new LinkedList[Int]
-    re.addFirst(b)
+    var st:pairII = new pairII(b,-1)
+    var re = new LinkedList[pairII]
     if(!from.containsKey(b)){
       println("!")
-      re.addFirst(a)
       return re
     }
-    while(st!=a){
-      st=from.get(st)
+    while(st.a!=a){
+      st=from.get(st.a)
       re.addFirst(st)
       //println("!"+st+" "+a)
     }
@@ -408,8 +408,8 @@ class BaseGraph extends java.io.Serializable {
     var c = a.iterator()
     while(c.hasNext()){
       var v = c.next()
-      var g = NormalToGeoLoc(NodeLoc(v))
-      re(pos) = new GeoPoint(g.x,g.y,-1,-1,-1)
+      var g = NormalToGeoLoc(NodeLoc(v.a))
+      re(pos) = new GeoPoint(g.x,g.y,0,v.b,0)
       pos=pos+1
     }
     re(pos) = p2
