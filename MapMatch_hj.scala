@@ -3,7 +3,7 @@ package mapmatch
 import java.util._
 import scala.math._
 
-class MapMatch_hj(G:BaseGraph) {
+class MapMatch_hj(G:SingaporeGraph) {
   val GC = new GraphCal(G)
   
   var MEASUREMENT_STD = 4.07
@@ -16,10 +16,12 @@ class MapMatch_hj(G:BaseGraph) {
     return matches
   }
   
+  class pairII(var a:Int= -1,var b:Int= -1)
+  
   def _getBestMatch(Points:Array[Array[Double]]):Array[GeoPoint] = {
     var candidates = new Array[Array[GeoPoint]](Points.length)
     var scores = new Array[Array[Double]](Points.length)
-    var parents = new Array[Array[Int]](Points.length)
+    var parents = new Array[Array[pairII]](Points.length)
     for(i <- 0 until Points.length){
       val p = Points(i)
       if (p==null){
@@ -31,52 +33,85 @@ class MapMatch_hj(G:BaseGraph) {
         println("No candidate point find for the point "+i)
       }      
       // initialize parents and scores
-      parents(i) = new Array[Int](candidates(i).length)
+      parents(i) = new Array[pairII](candidates(i).length)
       scores(i) = new Array[Double](candidates(i).length)
     }
             
     for(i <- 0 until scores(0).length){
       scores(0)(i) = _getMeasurementProb(candidates(0)(i).dist)
-      parents(0)(i) = -1
+      parents(0)(i) = new pairII(-1,-1)
     }
     
+    var pre = 0
     for( i <- 1 until candidates.length){
-      println("Finding Route At Point "+i)
+      //println("Finding Route At Point "+i)
       //println(GC.getDistance(Points(i-1),Points(i)))
+      var flag=false
       for(j <- 0 until candidates(i).length){
         scores(i)(j) = -1000000000000.0
-        for(k <- 0 until candidates(i-1).length){
-          var ts = scores(i-1)(k) + _getTransitionProb(candidates(i-1)(k),candidates(i)(j),Points(i-1),Points(i));
-          if(scores(i)(j)<ts){
-            scores(i)(j)=ts
-            parents(i)(j)=k
+        parents(i)(j)= new pairII(-1,-1)
+        for(k <- 0 until candidates(pre).length){
+          var t = _getTransitionProb(candidates(pre)(k),candidates(i)(j),Points(pre),Points(i))
+          if(t> -1000000.0){
+            var ts = scores(pre)(k) + t
+            flag=true
+            if(scores(i)(j)<ts){
+              scores(i)(j)=ts
+              parents(i)(j)=new pairII(pre,k)
+            }
           }
+
         }
         scores(i)(j) = scores(i)(j) + _getMeasurementProb(candidates(i)(j).dist)
       }
+      if(flag) {
+        pre=pre+1
+      }else{
+        println("Impossible Point")
+      }
     }
     
-    var maxEnd = scores(scores.length-1).indexOf(scores(scores.length-1).max)
-    val index = new Array[Int](Points.length)
+    var End = scores.length-1
+    var maxEnd = scores(End).indexOf(scores(End).max)
+    var index = new Array[Int](Points.length)
+
+     while(parents(End)(maxEnd).a == -1){
+       End=End-1
+       maxEnd=scores(End).indexOf(scores(End).max)
+     }
     
     var p = maxEnd
-    for(i <- 1 to Points.length){
-      index(Points.length-i) = p
-      p=parents(Points.length-i)(p)
+    pre = End
+    while(pre!= -1){
+      index(pre) = p
+      var t = p
+      p=parents(pre)(t).b
+      pre = parents(pre)(t).a
     }
-    var result = new Array[GeoPoint](Points.length)
-    for(i <- 0 until Points.length){
-      result(i) = candidates(i)(index(i))
+    var result = new LinkedList[GeoPoint]
+    pre = End
+    while(pre!= -1){
+      result.addFirst(candidates(pre)(index(pre)))
+      pre=parents(pre)(index(pre)).a
     }
-    return result
+    
+    var re = new Array[GeoPoint](result.size)
+    var c = result.iterator()
+    pre = 0
+    while(c.hasNext){
+      re(pre)=c.next()
+      pre=pre+1
+    }
+    
+    return re
   }
   
   def getMatchedRouteDetail(Points:Array[GeoPoint]):Array[GeoPoint] = {
     var a = new LinkedList[GeoPoint]
     a.addLast(Points(0))
     for(i <- 0 until Points.length-1){
-      println("Processing Matched Route Detail At Point "+i)
-      println(GC.getShortestRouteDistance(Points(i),Points(i+1)))
+      //println("Processing Matched Route Detail At Point "+i)
+      //println(GC.getShortestRouteDistance(Points(i),Points(i+1)))
       var b = GC.getRouteDetail(Points(i),Points(i+1))
       for(j <- 1 until b.length){
         a.addLast(b(j))
@@ -114,6 +149,7 @@ class MapMatch_hj(G:BaseGraph) {
     // get probability
     //return 1.0 / BETA * exp(-diff/BETA)
     return log(1.0/BETA) + (-diff/BETA)
+    //return log(rawDist/candDist)
   }
   
   def GenerateNoise(t:Double):vector = {
@@ -122,7 +158,7 @@ class MapMatch_hj(G:BaseGraph) {
     if(l<0.0) l=0.0-l
     l*=t
     var th = r.nextDouble()
-    th*=2*Pi
+    th*= 2.0*Pi
     var x = l*sin(th)
     var y = l*cos(th)
     y/=GC.G.MeterPerDegree

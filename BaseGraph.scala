@@ -15,7 +15,7 @@ class BaseGraph extends java.io.Serializable {
   var k=0
   var edgeCnt = 0
   var nodeCnt = 0 
-  var MAXN = 1000000
+  var MAXN = 2000000
   
   var LinkId = new Array[String](MAXN)
   var LinkCat = new Array[String](MAXN)
@@ -281,13 +281,10 @@ class BaseGraph extends java.io.Serializable {
     return temp
   }
 
-  val boundfactor = 3.0
+  val boundfactor = 2.0
   val largefactor = 100.0
   
-  def InEllipse(a:vector,b:vector,c:vector):Boolean = {
-    var dis = length(c-a)+length(c-b)
-    return dis<=boundfactor*length(b-a)
-  }
+  def InEllipse(a:vector,b:vector,c:vector):Boolean = length(c-a)+length(c-b)<=boundfactor*length(b-a)
   
   def GraphDistance(a:Int,b:Int):Double = {
     if(a==b) return 0.0
@@ -327,10 +324,12 @@ class BaseGraph extends java.io.Serializable {
   }
   
   def PointGraphDistance(u:Int,ut:Double,v:Int,vt:Double):Double = {
+    
     if(u==v&&ut<=vt){
       return (vt-ut)*(length(Point(u)(1)-Point(u)(0)))
     }
     var ans:Double = GraphDistance(map.get(Point(u)(1)),map.get(Point(v)(0)))
+    //var ans = GraphDistance(2*u+1,2*v)
     var segu = Point(u)(1)-Point(u)(0)
     var segv = Point(v)(1)-Point(v)(0)
     ans+=(1.0-ut)*length(segu)
@@ -383,7 +382,7 @@ class BaseGraph extends java.io.Serializable {
     var st:pairII = new pairII(b,-1)
     var re = new LinkedList[pairII]
     if(!from.containsKey(b)){
-      println("!")
+      println("Cannot find path from "+a+" to "+b+"!!!")
       return re
     }
     while(st.a!=a){
@@ -402,6 +401,7 @@ class BaseGraph extends java.io.Serializable {
       }
     }
     var a = GraphRoute(map.get(Point(p1.roadSegId)(1)),map.get(Point(p2.roadSegId)(0)))
+    //var a = GraphRoute(2*p1.roadSegId+1,2*p2.roadSegId)
     var re = new Array[GeoPoint](a.size()+2)
     re(0) = p1
     var pos = 1

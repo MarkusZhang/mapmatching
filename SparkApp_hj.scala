@@ -9,8 +9,8 @@ import scala.math._
 
 object SparkApp_hj {
   def getMatcher:MapMatch_hj = {
-    //var temp = new SingaporeGraph
-    var temp = new SeattleGraph
+    var temp = new SingaporeGraph
+    //var temp = new SeattleGraph
     temp.Init()
     
     val matcher = new MapMatch_hj(temp)
@@ -18,7 +18,7 @@ object SparkApp_hj {
     return matcher
   }
   
-  def getMatcherBySerialized:MapMatch_hj = {
+  /*def getMatcherBySerialized:MapMatch_hj = {
     var temp = new BaseGraph
     val ois = new ObjectInputStream(new FileInputStream("e:/HM_MapMatching/road_network_serialized.txt"))
     //val ois = new ObjectInputStream(new FileInputStream("e:/taxi/LTA_serialized.txt"))
@@ -29,7 +29,7 @@ object SparkApp_hj {
     temp.Init(roadNetwork)
     
     return new MapMatch_hj(temp)
-  }
+  }*/
   
   def main(args:Array[String]):Unit = {
     println("Hi, this is ZJ and ZHJ's system for map-matching.")
@@ -39,6 +39,36 @@ object SparkApp_hj {
 
     //val matcher = getMatcherBySerialized
     
+    var ti = System.nanoTime()
+
+    val matcher = getMatcher
+    
+    println("Matcher Build Time: "+ ((System.nanoTime-ti)/1e9) +"s")
+    println(matcher.GC.G.n)
+    
+    var tg = 0
+    var noise = 20.0
+
+    
+    for(i <- 1 to 3){
+      for(j <- 0 until 7){
+        tg = i*10
+        noise = 5.0*j
+        ti = System.nanoTime()
+        println("Time Gap: "+tg+" Noise: "+noise)
+        solveSeattle(tg,noise,matcher)
+        ti=System.nanoTime()-ti
+        println(ti/1e9+"s")
+        println("")
+      }
+    }
+  }
+  
+  def solveSingapore(matcher:MapMatch_hj){
+    
+  }
+  
+  def solveSeattle(gap:Int,noise:Double,matcher:MapMatch_hj){
     var pw = new PrintWriter(new File("e:/HM_MapMatching/Gapped_Point.txt" ))
 
     
@@ -77,23 +107,18 @@ object SparkApp_hj {
       GT.addLast(a)
     }
     var GroundTruth = ConvertToArray(GT)
-   
-    var noise = 0.0
-    var gap = 10
-    
 
 
     
-    
-    val matcher = getMatcher
     
     matcher.MEASUREMENT_STD = 4.07+noise
-    matcher.BETA = 1.0*gap/log(2.0)*8*(1.0-sqrt(2)/2.0)/2.0
-    matcher.NEIGHBOUR_RADIUS=10*(matcher.MEASUREMENT_STD.toInt+1)
+    matcher.BETA = 1.0*gap/log(2.0)*3*(1.0-sqrt(2)/2.0)/2.0
+    matcher.NEIGHBOUR_RADIUS=50+3*(matcher.MEASUREMENT_STD.toInt+1)
     
     rawPoints = AddNoise(matcher,noise,rawPoints)
     
-    var rawPoints2 = SampleRateFilter(rawPoints,gap)
+    var rawPointst = SampleRateFilter(rawPoints,gap)
+    var rawPoints2 = PreProcessRawData(matcher,rawPointst,2.0*matcher.MEASUREMENT_STD)
     
     for(i <- 0 until rawPoints2.length){
       pw.write(rawPoints2(i)(1)+","+rawPoints2(i)(0)+"\r\n")
@@ -107,8 +132,8 @@ object SparkApp_hj {
     pw = new PrintWriter(new File("e:/HM_MapMatching/result.txt"))
 
     for(i <- 0 until re.length){
-      if(i>0) println(matcher.GC.getShortestRouteDistance(re(i-1),re(i)))
-      println(i+" "+re(i)+" LinkId:"+matcher.GC.G.LinkId(re(i).roadSegId))
+      //if(i>0) println(matcher.GC.getShortestRouteDistance(re(i-1),re(i)))
+      //println(i+" "+re(i)+" LinkId:"+matcher.GC.G.LinkId(re(i).roadSegId))
       pw.write(re(i).y+","+re(i).x+"\r\n")
     }
     
@@ -123,38 +148,52 @@ object SparkApp_hj {
     for(i <- 0 until a.length){
       pw.write(a(i).y+","+a(i).x+"\r\n")
       
-      var t = matcher.GC.G.LinkId(a(i).roadSegId)
-      if(t.last=='-'){
-        t=t.substring(0,t.length()-4)
-        t=t+"-"
-      }else{
-        t=t.substring(0,t.length()-3)
-        t=t+"+"
+      if(a(i).roadSegId!=(-1)){
+        var t = matcher.GC.G.LinkId(a(i).roadSegId)
+        while(t.last=='E'||t.last=='S') t=t.substring(0,t.length()-1)
+        if(t.last=='-'){
+          t=t.substring(0,t.length()-4)
+          t=t+"-"
+        }else{
+          t=t.substring(0,t.length()-4)
+          t=t+"+"
+        }
+        if(t!=end){
+          RP.addLast(t)
+          end=t
+        }
       }
-      if(t!=end){
-        RP.addLast(t)
-        end=t
-      }
+
     }
     pw.close
     
     var ResultPath = ConvertToArray(RP)
+    
 
     
     var LCSCal = new LCS
     var lcs = LCSCal.getResult(GroundTruth,ResultPath)
-    println(GroundTruth.length)
-    println(ResultPath.length)
-    println(1.0-1.0*(GroundTruth.length+ResultPath.length-2*lcs)/GroundTruth.length)
     
+    var cnt = 0
     
-    //884147800805
+    /*for(i <- 0 until ResultPath.length) {
+      print(ResultPath(i))
+      if(cnt<lcs.length) {
+        print(" "+lcs(cnt))
+        if(lcs(cnt)==ResultPath(i)) {
+          print(" *")
+          cnt=cnt+1
+        }
+      }
+      println("")
+    }*/
     
-    //TODO: preprocess the raw data. Noise Generating Function
+    println(GroundTruth.length+" "+ResultPath.length+" "+lcs.length)
+
+    println(1.0-1.0*(GroundTruth.length+ResultPath.length-2*lcs.length)/GroundTruth.length)
     
-    //47.66965,-122.1051667
-    //47.67098333,-122.1066
-    
+        
+
     /*
     var matcher = getMatcher
     var rawPoints = new Array[Array[Double]](2)
@@ -194,7 +233,6 @@ object SparkApp_hj {
     }
     */
     
-
   }
   
   def SampleRateFilter(rawPoints:Array[Array[Double]],gap:Int):Array[Array[Double]] = {
@@ -214,6 +252,27 @@ object SparkApp_hj {
       rawPoints(i)(1)+=a.y
     }
     return rawPoints
+  }
+  
+  def PreProcessRawData(matcher:MapMatch_hj,rawPoints:Array[Array[Double]],dis:Double):Array[Array[Double]]={
+    var re = new LinkedList[Array[Double]]
+    re.addLast(rawPoints(0))
+    var pre = rawPoints(0)
+    for(i <- 1 until rawPoints.length){
+      if(matcher.GC.getDistance(pre, rawPoints(i))>1.0*dis){
+        re.addLast(rawPoints(i))
+        pre = rawPoints(i)
+      }
+    }
+    
+    var result = new Array[Array[Double]](re.size)
+    var p = 0
+    var c = re.iterator()
+    while(c.hasNext){
+      result(p) = c.next()
+      p=p+1
+    }
+    return result
   }
   
   def ConvertToArray(a:LinkedList[String]):Array[String]={
