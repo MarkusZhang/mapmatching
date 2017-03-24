@@ -46,7 +46,7 @@ object SparkApp_hj {
     println("Matcher Build Time: "+ ((System.nanoTime-ti)/1e9) +"s")
     println(matcher.GC.G.n)
     
-    var tg = 0
+    /*var tg = 0
     var noise = 20.0
 
     
@@ -61,11 +61,84 @@ object SparkApp_hj {
         println(ti/1e9+"s")
         println("")
       }
-    }
+    }*/
+    
+    solveSingapore(matcher)
   }
   
   def solveSingapore(matcher:MapMatch_hj){
+    matcher.MEASUREMENT_STD = 10.0
+    matcher.BETA = 1.0*30/log(2.0)*3*(1.0-sqrt(2)/2.0)/2.0
+    matcher.NEIGHBOUR_RADIUS=50+3*(matcher.MEASUREMENT_STD.toInt+1)
     
+    var datafile = "e:/taxi/taxidata.txt"
+    var in = new Scanner(new File(datafile))
+    var Data = new Array[LinkedList[Array[Double]]](4385)
+    
+    var pre = -1;
+    var precar = ""
+    while(in.hasNext){
+      var car = in.next()
+      if(car!=precar){
+        pre=pre+1
+        Data(pre) = new LinkedList[Array[Double]]
+        precar=car
+      }
+      var po = Array(in.nextDouble(),in.nextDouble())
+      Data(pre).addLast(po)
+      in.nextLine()
+    }
+    
+    var c = Data(0).iterator()
+    while(c.hasNext){
+      var t=c.next()
+      //pr(t(0),t(1),0)
+    }
+    
+    var ti = System.nanoTime()
+    var cnt = 0
+    for(i <- 0 until Data.length){
+      
+      println("Processing Car: "+i)
+      var re2 = ConvertToArray(Data(i))
+      var re = PreProcessRawData(matcher,re2,2.0*matcher.MEASUREMENT_STD)
+      println(re.length)
+      var ma = matcher.getMatchedRoute(re)
+      var a = matcher.getMatchedRouteDetail(ma)
+    
+      if(re.length>50) cnt=cnt+1
+      for(i <- 0 until re.length){
+        //pr(re(i)(0),re(i)(1),0)
+      }
+    
+      for(i <- 0 until a.length){
+        //pr(a(i).x,a(i).y,1)
+      }
+      println((System.nanoTime()-ti)/1e9/cnt)
+      println("")
+    }
+
+    
+    
+    /*var rawPoints = new Array[Array[Double]](2)
+    rawPoints(0) = new Array[Double](2)
+    rawPoints(0)(0)= 103.765026
+    rawPoints(0)(1) = 1.314633
+    
+    rawPoints(1) = new Array[Double](2)
+    rawPoints(1)(0) = 103.97236
+    rawPoints(1)(1) = 1.32538
+    
+    var a = matcher.GC.getNeighbours(rawPoints(1)(0), rawPoints(1)(1), 200)
+    
+    pr(rawPoints(1)(0),rawPoints(1)(1),0)
+    for(i <- 0 until a.length){
+      pr(a(i).x,a(i).y,1)
+    }
+    
+    var sp = a(0)
+    println(sp)*/
+
   }
   
   def solveSeattle(gap:Int,noise:Double,matcher:MapMatch_hj){
@@ -284,7 +357,16 @@ object SparkApp_hj {
       p=p+1
     }
     return re
-    
+  }
+  def ConvertToArray(a:LinkedList[Array[Double]]):Array[Array[Double]]={
+    var re = new Array[Array[Double]](a.size)
+    var p = 0
+    var c = a.iterator()
+    while(c.hasNext()){
+      re(p)=c.next()
+      p=p+1
+    }
+    return re
   }
 
   

@@ -281,8 +281,8 @@ class BaseGraph extends java.io.Serializable {
     return temp
   }
 
-  val boundfactor = 2.0
-  val largefactor = 100.0
+  val boundfactor = 3.0
+  val largefactor = 100000.0
   
   def InEllipse(a:vector,b:vector,c:vector):Boolean = length(c-a)+length(c-b)<=boundfactor*length(b-a)
   

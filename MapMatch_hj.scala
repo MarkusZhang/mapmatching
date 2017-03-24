@@ -37,22 +37,25 @@ class MapMatch_hj(G:SingaporeGraph) {
       scores(i) = new Array[Double](candidates(i).length)
     }
             
-    for(i <- 0 until scores(0).length){
-      scores(0)(i) = _getMeasurementProb(candidates(0)(i).dist)
-      parents(0)(i) = new pairII(-1,-1)
+
+    var st = 0
+    while(st<candidates.length&&candidates(st).length==0) st=st+1
+    if(st>=candidates.length) return new Array[GeoPoint](0)
+    for(i <- 0 until scores(st).length){
+      scores(st)(i) = _getMeasurementProb(candidates(st)(i).dist)
+      parents(st)(i) = new pairII(-1,-1)
     }
-    
-    var pre = 0
-    for( i <- 1 until candidates.length){
+    var pre = st
+    for( i <- st+1 until candidates.length){
       //println("Finding Route At Point "+i)
       //println(GC.getDistance(Points(i-1),Points(i)))
       var flag=false
       for(j <- 0 until candidates(i).length){
-        scores(i)(j) = -1000000000000.0
+        scores(i)(j) = -1000000000000000.0
         parents(i)(j)= new pairII(-1,-1)
         for(k <- 0 until candidates(pre).length){
           var t = _getTransitionProb(candidates(pre)(k),candidates(i)(j),Points(pre),Points(i))
-          if(t> -1000000.0){
+          if(t> -1000000000.0){
             var ts = scores(pre)(k) + t
             flag=true
             if(scores(i)(j)<ts){
@@ -65,21 +68,24 @@ class MapMatch_hj(G:SingaporeGraph) {
         scores(i)(j) = scores(i)(j) + _getMeasurementProb(candidates(i)(j).dist)
       }
       if(flag) {
-        pre=pre+1
+        pre=i
       }else{
-        println("Impossible Point")
+        println("Impossible Point at "+i)
       }
     }
     
     var End = scores.length-1
-    var maxEnd = scores(End).indexOf(scores(End).max)
+    
+    var maxEnd = -1
+    
+    while(End>=st&&(scores(End).length==0||parents(End)(scores(End).indexOf(scores(End).max)).a == -1)){
+      End=End-1
+    }
+    if(End<st) return new Array[GeoPoint](0)
+    maxEnd=scores(End).indexOf(scores(End).max)
+
     var index = new Array[Int](Points.length)
 
-     while(parents(End)(maxEnd).a == -1){
-       End=End-1
-       maxEnd=scores(End).indexOf(scores(End).max)
-     }
-    
     var p = maxEnd
     pre = End
     while(pre!= -1){
@@ -107,6 +113,7 @@ class MapMatch_hj(G:SingaporeGraph) {
   }
   
   def getMatchedRouteDetail(Points:Array[GeoPoint]):Array[GeoPoint] = {
+    if(Points.length==0) return new Array[GeoPoint](0)
     var a = new LinkedList[GeoPoint]
     a.addLast(Points(0))
     for(i <- 0 until Points.length-1){
