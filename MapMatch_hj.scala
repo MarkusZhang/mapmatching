@@ -16,6 +16,11 @@ class MapMatch_hj(G:SingaporeGraph) {
     return matches
   }
   
+  def getMatchedRoute(rawPoints:Array[GPSwD]):Array[GeoPoint] = {
+    val matches = _getBestMatch(Points = rawPoints)
+    return matches
+  }
+  
   class pairII(var a:Int= -1,var b:Int= -1)
   
   def _getBestMatch(Points:Array[Array[Double]]):Array[GeoPoint] = {
@@ -112,6 +117,104 @@ class MapMatch_hj(G:SingaporeGraph) {
     return re
   }
   
+  def _getBestMatch(Points:Array[GPSwD]):Array[GeoPoint] = {
+    var candidates = new Array[Array[GeoPoint]](Points.length)
+    var scores = new Array[Array[Double]](Points.length)
+    var parents = new Array[Array[pairII]](Points.length)
+    for(i <- 0 until Points.length){
+      val p = Points(i)
+      if (p==null){
+        println("======================================")
+        println("point is null")
+      }
+      candidates(i) = GC.getNeighbours(p.x,p.y,NEIGHBOUR_RADIUS)
+      if(candidates(i).length==0){
+        println("No candidate point find for the point "+i)
+      }      
+      // initialize parents and scores
+      parents(i) = new Array[pairII](candidates(i).length)
+      scores(i) = new Array[Double](candidates(i).length)
+    }
+            
+
+    var st = 0
+    while(st<candidates.length&&candidates(st).length==0) st=st+1
+    if(st>=candidates.length) return new Array[GeoPoint](0)
+    for(i <- 0 until scores(st).length){
+      scores(st)(i) = _getMeasurementProb(candidates(st)(i).dist)
+      parents(st)(i) = new pairII(-1,-1)
+    }
+    var pre = st
+    for( i <- st+1 until candidates.length){
+      //println("Finding Route At Point "+i)
+      //println(GC.getDistance(Points(i-1),Points(i)))
+      var flag=false
+      for(j <- 0 until candidates(i).length){
+        scores(i)(j) = -1000000000000000.0
+        parents(i)(j)= new pairII(-1,-1)
+        for(k <- 0 until candidates(pre).length){
+          var t = _getTransitionProb(candidates(pre)(k),candidates(i)(j),Array(Points(pre).x,Points(pre).y),Array(Points(i).x,Points(i).y))
+          if(t> -1000000000.0){
+            var ts = scores(pre)(k) + t
+            flag=true
+            if(scores(i)(j)<ts){
+              scores(i)(j)=ts
+              parents(i)(j)=new pairII(pre,k)
+            }
+          }
+
+        }
+        var sim = _getDirectionSimilarity(Points(i).d,GC.G.Point(candidates(i)(j).roadSegId)(1)-GC.G.Point(candidates(i)(j).roadSegId)(0))
+        
+        scores(i)(j) = scores(i)(j) + _getMeasurementProb(candidates(i)(j).dist)
+        if(sim<0.001) scores(i)(j) = -1000000000000000.0
+        else scores(i)(j) = scores(i)(j) + log(sim)
+      }
+      if(flag) {
+        pre=i
+      }else{
+        println("Impossible Point at "+i)
+      }
+    }
+    
+    var End = scores.length-1
+    
+    var maxEnd = -1
+    
+    while(End>=st&&(scores(End).length==0||parents(End)(scores(End).indexOf(scores(End).max)).a == -1)){
+      End=End-1
+    }
+    if(End<st) return new Array[GeoPoint](0)
+    maxEnd=scores(End).indexOf(scores(End).max)
+
+    var index = new Array[Int](Points.length)
+
+    var p = maxEnd
+    pre = End
+    while(pre!= -1){
+      index(pre) = p
+      var t = p
+      p=parents(pre)(t).b
+      pre = parents(pre)(t).a
+    }
+    var result = new LinkedList[GeoPoint]
+    pre = End
+    while(pre!= -1){
+      result.addFirst(candidates(pre)(index(pre)))
+      pre=parents(pre)(index(pre)).a
+    }
+    
+    var re = new Array[GeoPoint](result.size)
+    var c = result.iterator()
+    pre = 0
+    while(c.hasNext){
+      re(pre)=c.next()
+      pre=pre+1
+    }
+    
+    return re
+  }
+  
   def getMatchedRouteDetail(Points:Array[GeoPoint]):Array[GeoPoint] = {
     if(Points.length==0) return new Array[GeoPoint](0)
     var a = new LinkedList[GeoPoint]
@@ -157,6 +260,10 @@ class MapMatch_hj(G:SingaporeGraph) {
     //return 1.0 / BETA * exp(-diff/BETA)
     return log(1.0/BETA) + (-diff/BETA)
     //return log(rawDist/candDist)
+  }
+  
+  def _getDirectionSimilarity(a:vector,b:vector):Double = {
+    return GC.G.dot(a,b)/GC.G.length(a)/GC.G.length(b)
   }
   
   def GenerateNoise(t:Double):vector = {

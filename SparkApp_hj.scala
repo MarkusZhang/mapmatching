@@ -73,7 +73,7 @@ object SparkApp_hj {
     
     var datafile = "e:/taxi/taxidata.txt"
     var in = new Scanner(new File(datafile))
-    var Data = new Array[LinkedList[Array[Double]]](4385)
+    var Data = new Array[LinkedList[GPSwD]](4385)
     
     var pre = -1;
     var precar = ""
@@ -81,11 +81,13 @@ object SparkApp_hj {
       var car = in.next()
       if(car!=precar){
         pre=pre+1
-        Data(pre) = new LinkedList[Array[Double]]
+        Data(pre) = new LinkedList[GPSwD]
         precar=car
       }
       var po = Array(in.nextDouble(),in.nextDouble())
-      Data(pre).addLast(po)
+      var speed = in.nextDouble()
+      var dir = getDirection(in.nextDouble())
+      Data(pre).addLast(new GPSwD(po(0),po(1),dir))
       in.nextLine()
     }
     
@@ -108,7 +110,7 @@ object SparkApp_hj {
     
       if(re.length>50) cnt=cnt+1
       for(i <- 0 until re.length){
-        //pr(re(i)(0),re(i)(1),0)
+        pr(re(i).x,re(i).y,0)
       }
     
       for(i <- 0 until a.length){
@@ -308,6 +310,11 @@ object SparkApp_hj {
     
   }
   
+  def getDirection(a:Double):vector = {
+    var theta:Double = 1.0*a/32.0*2.0*Pi+Pi/2.0
+    return new vector(cos(theta),sin(theta))
+  }
+  
   def SampleRateFilter(rawPoints:Array[Array[Double]],gap:Int):Array[Array[Double]] = {
     var sz = rawPoints.length
     var sz2 = (sz/gap).toInt
@@ -338,13 +345,24 @@ object SparkApp_hj {
       }
     }
     
-    var result = new Array[Array[Double]](re.size)
-    var p = 0
-    var c = re.iterator()
-    while(c.hasNext){
-      result(p) = c.next()
-      p=p+1
+    var result = ConvertToArray(re)
+
+    return result
+  }
+  
+    def PreProcessRawData(matcher:MapMatch_hj,rawPoints:Array[GPSwD],dis:Double):Array[GPSwD]={
+    var re = new LinkedList[GPSwD]
+    re.addLast(rawPoints(0))
+    var pre = Array(rawPoints(0).x,rawPoints(0).y)
+    for(i <- 1 until rawPoints.length){
+      if(matcher.GC.getDistance(pre, Array(rawPoints(i).x,rawPoints(i).y))>1.0*dis){
+        re.addLast(rawPoints(i))
+        pre = Array(rawPoints(i).x,rawPoints(i).y)
+      }
     }
+    
+    var result = ConvertToArray(re)
+
     return result
   }
   
@@ -360,6 +378,16 @@ object SparkApp_hj {
   }
   def ConvertToArray(a:LinkedList[Array[Double]]):Array[Array[Double]]={
     var re = new Array[Array[Double]](a.size)
+    var p = 0
+    var c = a.iterator()
+    while(c.hasNext()){
+      re(p)=c.next()
+      p=p+1
+    }
+    return re
+  }
+    def ConvertToArray(a:LinkedList[GPSwD]):Array[GPSwD]={
+    var re = new Array[GPSwD](a.size)
     var p = 0
     var c = a.iterator()
     while(c.hasNext()){
