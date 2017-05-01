@@ -9,8 +9,8 @@ import scala.math._
 
 object SparkApp_hj {
   def getMatcher:MapMatch_hj = {
-    var temp = new SingaporeGraph
-    //var temp = new SeattleGraph
+    //var temp = new SingaporeGraph
+    var temp = new SeattleGraph
     temp.Init()
     
     val matcher = new MapMatch_hj(temp)
@@ -44,13 +44,13 @@ object SparkApp_hj {
     val matcher = getMatcher
     
     println("Matcher Build Time: "+ ((System.nanoTime-ti)/1e9) +"s")
-    println(matcher.GC.G.n)
     
-    /*var tg = 0
-    var noise = 20.0
+    var tg = 15
+    var noise = 5.0
 
+    solveSeattle(tg,noise,matcher);
     
-    for(i <- 1 to 3){
+    /*for(i <- 1 to 3){
       for(j <- 0 until 7){
         tg = i*10
         noise = 5.0*j
@@ -63,7 +63,7 @@ object SparkApp_hj {
       }
     }*/
     
-    solveSingapore(matcher)
+    //solveSingapore(matcher)
   }
   
   def solveSingapore(matcher:MapMatch_hj){
@@ -144,7 +144,9 @@ object SparkApp_hj {
   }
   
   def solveSeattle(gap:Int,noise:Double,matcher:MapMatch_hj){
-    var pw = new PrintWriter(new File("e:/HM_MapMatching/Gapped_Point.txt" ))
+    
+    println("Time Gap: "+gap+" Noise: "+noise)
+    
 
     
     var datafile = "e:/HM_MapMatching/gps_data.txt"
@@ -183,8 +185,29 @@ object SparkApp_hj {
     }
     var GroundTruth = ConvertToArray(GT)
 
+    //var pw = new PrintWriter(new File("e:/HM_MapMatching/Ground_Truth_Points.txt"))
 
-    
+    /*for(i <- 0 until GroundTruth.length){
+      var s = GroundTruth(i)
+      for(j <- 0 until matcher.GC.G.LinkId.length){
+        var t = matcher.GC.G.LinkId(j)
+        if(t!=null){
+          while(t.last=='E'||t.last=='S') t=t.substring(0,t.length()-1)
+          if(t.last=='-'){
+            t=t.substring(0,t.length()-4)
+            t=t+"-"
+          }else{
+            t=t.substring(0,t.length()-4)
+            t=t+"+"
+          }
+          if(t==s){
+            var re = matcher.GC.G.NormalToGeoLoc(matcher.GC.G.Point(j)(0))
+            pw.write(re.y+","+re.x+"\r\n")
+          }
+        }
+      }
+    }
+    pw.close()*/
     
     matcher.MEASUREMENT_STD = 4.07+noise
     matcher.BETA = 1.0*gap/log(2.0)*3*(1.0-sqrt(2)/2.0)/2.0
@@ -194,6 +217,9 @@ object SparkApp_hj {
     
     var rawPointst = SampleRateFilter(rawPoints,gap)
     var rawPoints2 = PreProcessRawData(matcher,rawPointst,2.0*matcher.MEASUREMENT_STD)
+    
+    var pw = new PrintWriter(new File("e:/HM_MapMatching/Gapped_Point.txt" ))
+
     
     for(i <- 0 until rawPoints2.length){
       pw.write(rawPoints2(i)(1)+","+rawPoints2(i)(0)+"\r\n")
@@ -263,11 +289,13 @@ object SparkApp_hj {
       println("")
     }*/
     
-    println(GroundTruth.length+" "+ResultPath.length+" "+lcs.length)
+    //println(GroundTruth.length+" "+ResultPath.length+" "+lcs.length)
 
-    println(1.0-1.0*(GroundTruth.length+ResultPath.length-2*lcs.length)/GroundTruth.length)
+    println("Accuracy: "+(1.0-1.0*(GroundTruth.length+ResultPath.length-2*lcs.length)/GroundTruth.length))
     
-        
+    
+    
+    
 
     /*
     var matcher = getMatcher
@@ -350,7 +378,7 @@ object SparkApp_hj {
     return result
   }
   
-    def PreProcessRawData(matcher:MapMatch_hj,rawPoints:Array[GPSwD],dis:Double):Array[GPSwD]={
+  def PreProcessRawData(matcher:MapMatch_hj,rawPoints:Array[GPSwD],dis:Double):Array[GPSwD]={
     var re = new LinkedList[GPSwD]
     re.addLast(rawPoints(0))
     var pre = Array(rawPoints(0).x,rawPoints(0).y)

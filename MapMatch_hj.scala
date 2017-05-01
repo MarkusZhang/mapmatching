@@ -3,7 +3,7 @@ package mapmatch
 import java.util._
 import scala.math._
 
-class MapMatch_hj(G:SingaporeGraph) {
+class MapMatch_hj(G:SeattleGraph) {
   val GC = new GraphCal(G)
   
   var MEASUREMENT_STD = 4.07

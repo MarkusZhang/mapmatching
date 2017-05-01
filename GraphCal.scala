@@ -2,7 +2,7 @@ package mapmatch
 
 import java.util._
 
-class GraphCal(var G:SingaporeGraph) {
+class GraphCal(var G:SeattleGraph) {
   
   //var G = new BaseGraph
   //G.Init(roadSegs)
